@@ -1,0 +1,6 @@
+
+globals = {
+    'describe',
+    'it',
+    'assert',
+}

@@ -2,26 +2,28 @@
 local colors = require('colorbuddy.color').colors
 local Color = require('colorbuddy.color').Color
 
+local helper = require('test.helper')
+
 describe('Color class', function()
     it('should create something with a name', function()
-        local test_color = Color.new('foobar', .5, .5, .5)
+        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
         assert.are.same('foobar', test_color.name)
     end)
 
     it('should add it to colors', function()
-        local test_color = Color.new('foobar', .5, .5, .5)
+        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
         assert.are.same(colors.foobar, test_color)
     end)
 
     it('should be accessible via weird caps', function()
-        local test_color = Color.new('foobar', .5, .5, .5)
+        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
         assert.are.same(colors.FooBar, test_color)
         assert.are.same(colors.fooBar, test_color)
         assert.are.same(colors.FOOBAR, test_color)
     end)
 
     it('should be accessible via weird caps from naming', function()
-        local test_color = Color.new('fooBar', .5, .5, .5)
+        local test_color = Color.new('fooBar', 0.5, 0.5, 0.5)
         assert.are.same(colors.FooBar, test_color)
         assert.are.same(colors.fooBar, test_color)
         assert.are.same(colors.FOOBAR, test_color)
@@ -40,15 +42,15 @@ describe('Color class', function()
     end)
 
     it('should create children', function()
-        local test_color = Color.new('foobar', .5, .5, .5)
+        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', 'dark')
 
         assert.are.same('kiddo', child_color.name)
-        assert.are.same(.4, child_color.L)
+        assert.are.same(0.4, child_color.L)
     end)
 
     it('should create children with arguments', function()
-        local test_color = Color.new('foobar', .5, .5, .5)
+        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', {'dark', 0.2})
 
         assert.are.same('kiddo', child_color.name)
@@ -57,11 +59,33 @@ describe('Color class', function()
     end)
 
     it('should create children with multiple arguments', function()
-        local test_color = Color.new('foobar', .5, .5, .5)
+        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', {'dark', 0.2}, {'light', 0.2})
 
         assert.are.same('kiddo', child_color.name)
         assert.are.same(0.5, child_color.L)
         assert.are.same(test_color.children['kiddo'], child_color)
+    end)
+
+    it('should update children when parent is updated', function()
+        local test_color = Color.new('fooBar', 0.5, 0.5, 0.5)
+        local child_color = test_color:new_child('kiddo', 'dark')
+        local light_color = test_color:new_child('lighter', 'light')
+
+        test_color:apply_modifier('dark')
+
+        assert.are.same(0.5 - 0.1 - 0.1, child_color.L)
+        assert.are.same(0.5 + 0.1 - 0.1, light_color.L)
+    end)
+
+    it('should update grand children when parent is updated', function()
+        local test_color = Color.new('fooBar', 0.5, 0.5, 0.5)
+        local child_color = test_color:new_child('kiddo', 'dark')
+        local grandchild_color = child_color:new_child('grandkiddo', {'dark', 0.2})
+
+        test_color:apply_modifier('dark')
+
+        helper.eq_float(0.5 - 0.1 - 0.1, child_color.L)
+        helper.eq_float(child_color.L - 0.2, grandchild_color.L)
     end)
 end)

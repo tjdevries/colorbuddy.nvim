@@ -1,4 +1,6 @@
 -- Some table setup... as always
+-- luacheck: globals table.extend
+-- luacheck: globals table.slice
 
 table.slice = function(tbl, first, last, step)
   local sliced = {}
@@ -81,25 +83,25 @@ end
 util.hsl_to_rgb = function(h, s, L)
    h = h/360
    local m1, m2
-   if L<=0.5 then 
+   if L<=0.5 then
       m2 = L*(s+1)
-   else 
+   else
       m2 = L+s-L*s
    end
    m1 = L*2-m2
 
-   local function _h2rgb(m1, m2, h)
-      if h<0 then h = h+1 end
-      if h>1 then h = h-1 end
-      if h*6<1 then 
-         return m1+(m2-m1)*h*6
-      elseif h*2<1 then 
-         return m2 
-      elseif h*3<2 then 
-         return m1+(m2-m1)*(2/3-h)*6
-      else
-         return m1
-      end
+   local function _h2rgb(_m1, _m2, _h)
+     if _h<0 then _h = _h+1 end
+     if _h>1 then _h = _h-1 end
+     if _h*6<1 then
+       return _m1+(_m2-_m1)*h*6
+     elseif _h*2<1 then
+       return _m2
+     elseif _h*3<2 then
+       return _m1+(_m2-_m1)*(2/3-h)*6
+     else
+       return _m1
+     end
    end
 
    return _h2rgb(m1, m2, h+1/3), _h2rgb(m1, m2, h), _h2rgb(m1, m2, h-1/3)

@@ -1,4 +1,9 @@
+local log = require('colorbuddy.log')
+
 local util = require('colorbuddy.util')
+-- util gives us some new globals:
+-- luacheck: globals table.extend
+-- luacheck: globals table.slice
 
 local color_hash = {}
 
@@ -6,7 +11,7 @@ local add_color = function(c)
     color_hash[string.lower(c.name)] = c
 end
 
-local find_color = function(i_table, raw_key)
+local find_color = function(_, raw_key)
     local key = string.lower(raw_key)
 
     if color_hash[key] ~= nil then
@@ -46,7 +51,7 @@ local __colors_mt = {
 setmetatable(colors, __colors_mt)
 
 local Color = {}
-local IndexColor = function(i_table, key)
+local IndexColor = function(_, key)
     if Color[key] ~= nil then
         return Color[key]
     end
@@ -58,16 +63,21 @@ local IndexColor = function(i_table, key)
 
     return nil
 end
+local color_object_to_string = function(self)
+    return string.format('[%s: (%s, %s, %s)]', self.name, self.H, self.S, self.L)
+end
+
 local __local_mt = {
     __metatable = {},
     __index = IndexColor,
+    __tostring = color_object_to_string,
 }
 
 -- Color:
 --  name
 --  H, S, L
 --  children: A table of all the colors that depend on this color
-Color.new = function(name, H, S, L, modifiers)
+Color.new = function(name, H, S, L, mods)
     assert(__local_mt)
 
     if type(H) == "string" and H:sub(1, 1) == "#" and H:len() == 7 then
@@ -80,7 +90,7 @@ Color.new = function(name, H, S, L, modifiers)
         S = S,
         L = L,
         children = {},
-        modifiers = modifiers,
+        modifiers = mods,
     }, __local_mt)
 
     add_color(object)
@@ -96,7 +106,7 @@ Color.to_rgb = function(self, H, S, L)
     local rgb = {util.hsl_to_rgb(H, S, L)}
     local buffer = "#"
 
-    for i,v in ipairs(rgb) do
+    for _, v in ipairs(rgb) do
         buffer = buffer .. string.format("%02x", math.floor(v * 255 + 0.5))
     end
 
@@ -104,10 +114,22 @@ Color.to_rgb = function(self, H, S, L)
 end
 
 Color.apply_modifier = function(self, modifier_key, ...)
+    log.info('Applying Modifier for:', self.name, ' / ', modifier_key)
     if modifiers[modifier_key] == nil then
         print('Invalid key:', modifier_key, '. Please use a valid key')
         return nil
     end
+
+    local new_hsl = modifiers[modifier_key](self.H, self.S, self.L, ...)
+    self.H, self.S, self.L = unpack(new_hsl)
+
+    -- Update all of the children.
+    for _, child in pairs(self.children) do
+        print(child)
+        child:apply_modifier(modifier_key, ...)
+    end
+    -- FIXME: Check for loops within the children.
+    -- FIXME: Call an event to update any color groups
 end
 
 Color._add_child = function(self, child)
@@ -116,10 +138,19 @@ end
 
 
 Color.new_child = function(self, name, ...)
+    if self.children[string.lower(name)] ~= nil then
+        print('ERROR: must not use same name')
+        return nil
+    end
+
+    log.debug('New Child: ', self, name, ...)
     local hsl_table = {self.H, self.S, self.L}
-    for i, v in ipairs(arg) do
+
+    for i, v in ipairs({...}) do
+        log.debug('(i, v)', i, v)
         if type(v) == 'string' then
             if modifiers[v] ~= nil then
+                log.debug('Applying string: ', i, v)
                 hsl_table = modifiers[v](unpack(hsl_table))
             end
         elseif type(v) == 'table' then
