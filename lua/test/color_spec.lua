@@ -2,6 +2,8 @@
 local colors = require('colorbuddy.color').colors
 local Color = require('colorbuddy.color').Color
 
+local modifiers = require('colorbuddy.modifiers').modifiers
+
 local helper = require('test.helper')
 
 describe('Color class', function()
@@ -87,5 +89,16 @@ describe('Color class', function()
 
         helper.eq_float(0.5 - 0.1 - 0.1, child_color.L)
         helper.eq_float(child_color.L - 0.2, grandchild_color.L)
+    end)
+
+    it('should be able to subtract rgb values', function()
+        local test_color = Color.new('mixed', '#888888')
+        local subtract_color = Color.new('subtractor', '#0000FF')
+
+        local result = modifiers.subtract(test_color.H, test_color.S, test_color.L, subtract_color)
+        local final_color = Color.new('result', unpack(result))
+        print(test_color:to_rgb())
+        print(subtract_color:to_rgb())
+        print(final_color:to_rgb())
     end)
 end)

@@ -1,5 +1,6 @@
 local log = require('colorbuddy.log')
 
+local modifiers = require('colorbuddy.modifiers').modifiers
 local util = require('colorbuddy.util')
 -- util gives us some new globals:
 -- luacheck: globals table.extend
@@ -20,28 +21,6 @@ local find_color = function(_, raw_key)
         return {}
     end
 end
-
--- Modifier table
--- Must have signature of (H, S, L, ...)
--- and then return {H, S, L}
-local modifiers = {}
-
-modifiers.dark = function(H, S, L, amount)
-    if amount == nil or amount == {} then
-        amount = 0.1
-    end
-
-    return {H, S, L - amount}
-end
-
-modifiers.light = function(H, S, L, amount)
-    if amount == nil then
-        amount = 0.1
-    end
-
-    return {H, S, L + amount}
-end
-
 
 local colors = {}
 local __colors_mt = {
@@ -107,7 +86,7 @@ Color.to_rgb = function(self, H, S, L)
     local buffer = "#"
 
     for _, v in ipairs(rgb) do
-        buffer = buffer .. string.format("%02x", math.floor(v * 255 + 0.5))
+        buffer = buffer .. string.format("%02x", math.floor(v * 256 + 0.1))
     end
 
     return buffer
