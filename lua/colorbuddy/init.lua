@@ -8,5 +8,8 @@ local colors = require('colorbuddy.color').colors
 
 return {
     groups = groups,
+    Group = require('colorbuddy.group').Group,
     colors = colors,
+    Color = require('colorbuddy.color').Color,
+    styles = require('colorbuddy.style').styles,
 }

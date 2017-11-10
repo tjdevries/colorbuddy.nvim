@@ -12,10 +12,13 @@ local add_color = function(c)
     color_hash[string.lower(c.name)] = c
 end
 
+local is_existing_color = function(raw_key)
+    return color_hash[string.lower(raw_key)] ~= nil
+end
 local find_color = function(_, raw_key)
     local key = string.lower(raw_key)
 
-    if color_hash[key] ~= nil then
+    if is_existing_color(key) then
         return color_hash[key]
     else
         return {}
@@ -47,6 +50,7 @@ local color_object_to_string = function(self)
 end
 
 local __local_mt = {
+    __type__ = 'color',
     __metatable = {},
     __index = IndexColor,
     __tostring = color_object_to_string,
@@ -63,16 +67,27 @@ Color.new = function(name, H, S, L, mods)
         H, S, L = util.rgb_string_to_hsl(H)
     end
 
-    local object = setmetatable({
-        name = name,
-        H = H,
-        S = S,
-        L = L,
-        children = {},
-        modifiers = mods,
-    }, __local_mt)
+    -- Get an existing color if possible, so that we can update any references to this color
+    -- when you use something like 'Color.new('red', ...)' twice
+    local object
+    if is_existing_color(name) then
+        object = find_color(nil, name)
+        object.H = H
+        object.S = S
+        object.L = L
+    else
+        object = setmetatable({
+            __type__ = 'color',
+            name = name,
+            H = H,
+            S = S,
+            L = L,
+            children = {},
+            modifiers = mods,
+        }, __local_mt)
 
-    add_color(object)
+        add_color(object)
+    end
 
     return object
 end
@@ -93,7 +108,7 @@ Color.to_rgb = function(self, H, S, L)
 end
 
 Color.apply_modifier = function(self, modifier_key, ...)
-    log.info('Applying Modifier for:', self.name, ' / ', modifier_key)
+    log.debug('Applying Modifier for:', self.name, ' / ', modifier_key)
     if modifiers[modifier_key] == nil then
         print('Invalid key:', modifier_key, '. Please use a valid key')
         return nil
@@ -104,7 +119,6 @@ Color.apply_modifier = function(self, modifier_key, ...)
 
     -- Update all of the children.
     for _, child in pairs(self.children) do
-        print(child)
         child:apply_modifier(modifier_key, ...)
     end
     -- FIXME: Check for loops within the children.
@@ -146,7 +160,16 @@ Color.new_child = function(self, name, ...)
     return kid
 end
 
+local is_color_object = function(c)
+    if c == nil then
+        return false
+    end
+
+    return c.__type__ == 'color'
+end
+
 return {
     colors = colors,
-    Color = Color
+    Color = Color,
+    is_color_object = is_color_object,
 }

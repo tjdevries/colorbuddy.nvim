@@ -48,26 +48,32 @@ end
 -- @return               corresponding H, S and L components
 -----------------------------------------------------------------------------
 util.rgb_to_hsl = function(r, g, b)
+    r = r or 0
+    g = g or 0
+    b = b or 0
+
    --r, g, b = r/255, g/255, b/255
    local min = math.min(r, g, b)
    local max = math.max(r, g, b)
    local delta = max - min
 
-   local h, s, l = 0, 0, ((min+max)/2)
+   local h, s, l = 0, 0, ((min + max) / 2)
 
-   if l > 0 and l < 0.5 then s = delta/(max+min) end
-   if l >= 0.5 and l < 1 then s = delta/(2-max-min) end
+   -- Achromatic, can skip the rest
+   if max == min then return max * 360, 0, l end
+
+   if l < 0.5 then s = delta / (max + min) end
+   if l >= 0.5 then s = delta / (2 - max - min) end
 
    if delta > 0 then
       -- if max == r and max ~= g then h = h + (g-b)/delta end
 
       if max == r then
-        local other_val
-        if g < b then other_val = 6.0 else other_val = 0 end
-        h = (g - b) / delta + other_val
+        h = (g - b) / delta
+        if g < b then h = h + 6 end
+      elseif max == g then h = 2 + (b-r)/delta
+      elseif max == b then h = 4 + (r-g)/delta
       end
-      if max == g then h = 2 + (b-r)/delta end
-      if max == b then h = 4 + (r-g)/delta end
       h = h / 6;
    end
 
@@ -87,31 +93,34 @@ end
 -- @return               an R, G, and B component of RGB
 -----------------------------------------------------------------------------
 util.hsl_to_rgb = function(h, s, L)
-   h = h / 360
-   local m1, m2
-   if L <= 0.5 then
-      m2 = L * (s + 1)
-   else
-      m2 = (L + s) - (L * s)
-   end
+    h = h / 360
 
-   m1 = L*2-m2
+    if s == 0 then
+        -- Achromatic result
+        return L, L, L
+    end
 
-   local function _h2rgb(_m1, _m2, _h)
-     if _h < 0 then _h = _h + 1 end
-     if _h > 1 then _h = _h - 1 end
-     if _h * 6 < 1 then
-       return _m1 + (_m2 - _m1) * h * 6
-     elseif _h * 2 < 1 then
-       return _m2
-     elseif _h * 3 < 2 then
-       return _m1 + (_m2 - _m1) * (2/3 - h) * 6
-     else
-       return _m1
-     end
-   end
+    local m1, m2
+    if L <= 0.5 then
+        m2 = L * (s + 1)
+    else
+        m2 = (L + s) - (L * s)
+    end
 
-   return _h2rgb(m1, m2, h+1/3), _h2rgb(m1, m2, h), _h2rgb(m1, m2, h-1/3)
+    m1 = L * 2 - m2
+
+
+    local function hue_to_rgb(p, q, hue)
+        if hue < 0 then hue = hue + 1 end
+        if hue > 1 then hue = hue - 1 end
+
+        if hue < 1/6 then return p + (q - p) * hue * 6 end
+        if hue < 1/2 then return q end
+        if hue < 2/3 then return p + (q - p) * (2/3 - hue) * 6 end
+        return p
+    end
+
+    return hue_to_rgb(m1, m2, h + 1/3), hue_to_rgb(m1, m2, h), hue_to_rgb(m1, m2, h - 1/3)
 end
 
 util.clamp = function(val, min, max)

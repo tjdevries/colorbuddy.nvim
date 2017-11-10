@@ -40,11 +40,12 @@ describe('Color class', function()
         local test_color = Color.new('foobar', '#123456')
         assert.are.same('#123456', test_color:to_rgb())
 
-        assert.are.same(210, test_color:light()[1])
+        assert.are.same(test_color.H, test_color:light()[1])
+        helper.eq_float(test_color.L + 0.1, test_color:light()[3])
     end)
 
     it('should create children', function()
-        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
+        local test_color = Color.new('foobar', 180, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', 'dark')
 
         assert.are.same('kiddo', child_color.name)
@@ -52,7 +53,7 @@ describe('Color class', function()
     end)
 
     it('should create children with arguments', function()
-        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
+        local test_color = Color.new('foobar', 180, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', {'dark', 0.2})
 
         assert.are.same('kiddo', child_color.name)
@@ -61,7 +62,7 @@ describe('Color class', function()
     end)
 
     it('should create children with multiple arguments', function()
-        local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
+        local test_color = Color.new('foobar', 180, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', {'dark', 0.2}, {'light', 0.2})
 
         assert.are.same('kiddo', child_color.name)
@@ -70,7 +71,7 @@ describe('Color class', function()
     end)
 
     it('should update children when parent is updated', function()
-        local test_color = Color.new('fooBar', 0.5, 0.5, 0.5)
+        local test_color = Color.new('fooBar', 180, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', 'dark')
         local light_color = test_color:new_child('lighter', 'light')
 
@@ -81,7 +82,7 @@ describe('Color class', function()
     end)
 
     it('should update grand children when parent is updated', function()
-        local test_color = Color.new('fooBar', 0.5, 0.5, 0.5)
+        local test_color = Color.new('fooBar', 180, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', 'dark')
         local grandchild_color = child_color:new_child('grandkiddo', {'dark', 0.2})
 
@@ -97,8 +98,34 @@ describe('Color class', function()
 
         local result = modifiers.subtract(test_color.H, test_color.S, test_color.L, subtract_color)
         local final_color = Color.new('result', unpack(result))
-        print(test_color:to_rgb())
-        print(subtract_color:to_rgb())
-        print(final_color:to_rgb())
+        assert.are.same(test_color:to_rgb(), '#888888')
+        assert.are.same(subtract_color:to_rgb(), '#0000ff')
+        assert.are.same(final_color:to_rgb(), '#888800')
+    end)
+
+    it('should be able to subtract rgb values with variable intensity', function()
+        local test_color = Color.new('mixed', '#888888')
+        local subtract_color = Color.new('subtractor', '#0000FF')
+
+        local result = modifiers.subtract(
+            test_color.H, test_color.S, test_color.L,
+            subtract_color, 68 / 255 -- 68 / 255 since that's the difference between 0x88 and 0x44
+        )
+        local final_color = Color.new('result', unpack(result))
+        assert.are.same(test_color:to_rgb(), '#888888')
+        assert.are.same(subtract_color:to_rgb(), '#0000ff')
+        assert.are.same(final_color:to_rgb(), '#888844')
+    end)
+
+    it('should be able to add rgb values', function()
+        local test_color = Color.new('mixed', '#000001')
+        local subtract_color = Color.new('subtractor', '#00FF00')
+
+        local result = modifiers.add(
+            test_color.H, test_color.S, test_color.L,
+            subtract_color, 68 / 255 -- 68 / 255 since that's the difference between 0x88 and 0x44
+        )
+        local final_color = Color.new('result', unpack(result))
+        assert.are.same(final_color:to_rgb(), '#004401')
     end)
 end)

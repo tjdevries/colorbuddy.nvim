@@ -15,14 +15,12 @@ helper.eq_float = function(a, b)
     assert(#a == #b)
 
 
-    for i, v in ipairs(a) do
-        print(i, v)
+    for i, _ in ipairs(a) do
         local epsilon = (a[i] + .00001) * 0.01
         if not compare(a[i], b[i], epsilon) then
             print()
             print('FAILED ON:', i, a[i], b[i])
-            -- assert.are.same(a[i], b[i])
-            -- assert(a[i], b[i])
+            assert(a[i] == b[i])
         end
     end
 
