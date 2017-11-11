@@ -49,12 +49,32 @@ local color_object_to_string = function(self)
     return string.format('[%s: (%s, %s, %s)]', self.name, self.H, self.S, self.L)
 end
 
+local color_object_add = function(left, right)
+    print('left', unpack(modifiers.add(left.H, left.S, left.L, right, 1)))
+    return Color.private_create(nil, unpack(modifiers.add(left.H, left.S, left.L, right, 1)))
+end
+
 local __local_mt = {
     __type__ = 'color',
     __metatable = {},
     __index = IndexColor,
     __tostring = color_object_to_string,
+
+    -- FIXME: Determine what the basic arithmetic operators should do for colors...
+    __add = color_object_add,
 }
+
+Color.private_create = function(name, H, S, L, mods)
+    return setmetatable({
+        __type__ = 'color',
+        name = name,
+        H = H,
+        S = S,
+        L = L,
+        children = {},
+        modifiers = mods,
+    }, __local_mt)
+end
 
 -- Color:
 --  name
@@ -76,16 +96,7 @@ Color.new = function(name, H, S, L, mods)
         object.S = S
         object.L = L
     else
-        object = setmetatable({
-            __type__ = 'color',
-            name = name,
-            H = H,
-            S = S,
-            L = L,
-            children = {},
-            modifiers = mods,
-        }, __local_mt)
-
+        object = Color.private_create(name, H, S, L, mods)
         add_color(object)
     end
 
@@ -153,6 +164,9 @@ Color.new_child = function(self, name, ...)
             end
         end
     end
+    print()
+    print(name)
+    print()
     local kid = Color.new(name, unpack(hsl_table))
 
     self:_add_child(kid)
@@ -168,8 +182,12 @@ local is_color_object = function(c)
     return c.__type__ == 'color'
 end
 
+local _clear_colors = function() color_hash = {} end
+
+
 return {
     colors = colors,
     Color = Color,
     is_color_object = is_color_object,
+    _clear_colors = _clear_colors,
 }

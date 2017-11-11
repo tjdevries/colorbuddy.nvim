@@ -27,4 +27,8 @@ helper.eq_float = function(a, b)
     return true
 end
 
+helper.clear = function()
+    require('colorbuddy.color')._clear_colors()
+end
+
 return helper

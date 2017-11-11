@@ -7,6 +7,8 @@ local modifiers = require('colorbuddy.modifiers').modifiers
 local helper = require('test.helper')
 
 describe('Color class', function()
+    before_each(helper.clear)
+
     it('should create something with a name', function()
         local test_color = Color.new('foobar', 0.5, 0.5, 0.5)
         assert.are.same('foobar', test_color.name)
