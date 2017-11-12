@@ -1,0 +1,11 @@
+Execute (basic color commands):
+  lua colors = require('colorbuddy.init').colors
+  lua Color = require('colorbuddy.init').Color
+  lua Color.new('yellow', '#f0c674')
+  lua Color.new('background', '#1d1f21')
+
+  lua Group = require('colorbuddy.init').Group
+  lua Group.new('testFunction', colors.yellow, colors.background)
+
+  AssertEqual '#f0c674', synIDattr(synIDtrans(hlID('testfunction')), 'fg#', 'gui')
+  AssertEqual '#1d1f21', synIDattr(synIDtrans(hlID('testfunction')), 'bg#', 'gui')

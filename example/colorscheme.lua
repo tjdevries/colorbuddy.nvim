@@ -20,4 +20,4 @@ Group.new('italicBoldFunction', groups.Function, colors.background, styles.bold 
 
 -- If you want the same style as a different group, but without a style
 -- just subtract it!
--- Group.new('boldFunction', colors.yellow, colors.yellow, groups.italicBoldFunction - styles.italic)
+Group.new('boldFunction', colors.yellow, colors.yellow, groups.italicBoldFunction - styles.italic)

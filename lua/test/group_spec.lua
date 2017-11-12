@@ -7,9 +7,15 @@ local colors = require('colorbuddy.color').colors
 
 local styles = require('colorbuddy.style').styles
 
+local helper = require('test.helper')
+
 describe('Group object', function()
-    Color.new('yellow', '#f0c674')
-    Color.new('gray0', '#1d1f21')
+    before_each(function()
+        helper.clear()
+
+        Color.new('yellow', '#f0c674')
+        Color.new('gray0', '#1d1f21')
+    end)
 
     it('should send an nvim command', function()
         Group.new('test_01', colors.yellow, colors.gray0, styles.bold)
@@ -46,5 +52,12 @@ describe('Group object', function()
         assert.are.same('#f1c775', groups.finish.fg:to_rgb())
         assert.are_not.same(groups.start.fg, groups.finish.fg)
         assert.are.same(groups.start.bg, groups.finish.bg)
+    end)
+
+    it('should handle mixed addition: styles', function()
+        Group.new('original', colors.yellow, colors.gray0, styles.bold)
+        Group.new('addition', groups.original, groups.original, groups.original + styles.italic)
+
+        assert.are.same(styles.bold + styles.italic, groups.addition.style)
     end)
 end)

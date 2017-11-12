@@ -29,6 +29,7 @@ end
 
 helper.clear = function()
     require('colorbuddy.color')._clear_colors()
+    require('colorbuddy.group')._clear_groups()
 end
 
 return helper

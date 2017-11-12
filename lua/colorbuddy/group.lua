@@ -38,7 +38,7 @@ setmetatable(groups, __groups_mt)
 -- {{{2 MixedGroup
 local MixedGroup = {}
 -- {{{2 Addition
-local group_handle_mixed_addition = function(left, right)
+local group_handle_arithmetic = function(left, right)
     local mixed = {
         __type__ = 'mixed',
     }
@@ -67,7 +67,7 @@ local group_handle_mixed_addition = function(left, right)
     return mixed
 end
 
-local apply_mixed_addition = function(group_attr, mixed)
+local apply_mixed_arithmetic = function(group_attr, mixed)
     local left_item, right_item
 
     if is_group_object(mixed.left) then
@@ -97,7 +97,7 @@ end
 local __mixed_group_mt = {
     __metatable = {},
 
-    __add = group_handle_mixed_addition,
+    __add = group_handle_arithmetic,
 }
 setmetatable(MixedGroup, __mixed_group_mt)
 
@@ -119,51 +119,42 @@ local __local_mt = {
 
     -- FIXME: Subtraction for (Group - Group), (Group -> modifier(color)), and (Group - Style)
     -- FIXME: Addition for (Group + Group), (Group -> modifier(color)), and (Group + Style)
-    __add = group_handle_mixed_addition,
+    __add = group_handle_arithmetic,
 }
+
+local handle_group_argument = function(val, property, valid_object_function, err_string)
+    -- Return the property of the group object
+    if is_group_object(val) then
+        return val[property]
+    end
+
+    -- Return the result of a mixed value
+    if is_mixed_object(val) then
+        return apply_mixed_arithmetic(property, val)
+    end
+
+    -- Return a valid value
+    if valid_object_function(val) then
+        return val
+    end
+
+    -- Special casing:
+    if property == 'style' then
+        if val == nil then
+            return styles.none
+        end
+    end
+
+    error(err_string .. ': ' .. tostring(val))
+end
+
 
 Group.new = function(name, fg, bg, style) -- {{{2
     name = string.lower(name)
 
-    -- FIXME: Handle using a Group as an fg
-    local fg_color
-    if is_group_object(fg) then
-        -- FIXME: Keep track of this kiddo
-        fg_color = fg.fg
-    elseif is_color_object(fg) then
-        -- FIXME: Link colors objects to this group
-        fg_color = fg
-    elseif is_mixed_object(fg) then
-        fg_color = apply_mixed_addition('fg', fg)
-    else
-        error('Not a valid foreground color: ' .. tostring(fg))
-    end
-
-    local bg_color
-    if is_group_object(bg) then
-        -- FIXME: Keep track of this group
-        bg_color = bg.bg
-    elseif is_color_object(bg) then
-        -- FIXME: Link colors objects to this group
-        bg_color = bg
-    elseif is_mixed_object(bg) then
-        bg_color = apply_mixed_addition('bg', bg)
-    else
-        error('Not a valid background color: ' .. tostring(bg))
-    end
-
-    local style_style
-    if is_group_object(style) then
-        style_style = style.style
-    elseif is_style_object(style) then
-        style_style = style
-    elseif style == nil then
-        style_style = styles.none
-    else
-        error('Not a valid style: ' .. tostring(style))
-    end
-
-    -- FIXME: Handle using a Group as a style
+    local fg_color = handle_group_argument(fg, 'fg', is_color_object, 'Not a valid foreground color')
+    local bg_color = handle_group_argument(bg, 'bg', is_color_object, 'Not a valid background color')
+    local style_style = handle_group_argument(style, 'style', is_style_object, 'Not a valid style')
 
     local obj = setmetatable({
         __type__ = 'group',
@@ -194,10 +185,11 @@ Group.apply = function(self) -- {{{2
     )
 end
 
-
+local _clear_groups = function() group_hash = {} end -- {{{2
 
 return { -- {{{1
     groups = groups,
     Group = Group,
     is_group_object = is_group_object,
+    _clear_groups = _clear_groups,
 }
