@@ -61,6 +61,17 @@ describe('Group object', function()
         assert.are.same(styles.bold + styles.italic, groups.addition.style)
     end)
 
+    it('should handle mixed addition', function()
+        Group.new('start', colors.yellow, colors.gray0, styles.none)
+        Color.new('adder', '#010101')
+        Group.new('finish', groups.start + colors.adder, groups.start, groups.start)
+
+        -- #f0c674 + #010101
+        assert.are.same('#f1c775', groups.finish.fg:to_rgb())
+        assert.are_not.same(groups.start.fg, groups.finish.fg)
+        assert.are.same(groups.start.bg, groups.finish.bg)
+    end)
+
     describe('Group.default', function()
         it('should send a default highlight link', function()
         end)
