@@ -60,4 +60,29 @@ describe('Group object', function()
 
         assert.are.same(styles.bold + styles.italic, groups.addition.style)
     end)
+
+    describe('Group.default', function()
+        it('should send a default highlight link', function()
+        end)
+
+        it('should not overwrite an existing highlight', function()
+            Group.new('test', colors.yellow, colors.gray0)
+            Group.default('test', colors.gray0, colors.yellow)
+
+            -- Should be original color
+            assert.are.same(colors.yellow, groups.test.fg)
+        end)
+
+        it('should be overwritten by a new highlight', function()
+            Group.default('test', colors.gray0, colors.yellow)
+            assert.are.same(colors.gray0, groups.test.fg)
+
+            Group.new('test', colors.yellow, colors.gray0)
+            assert.are.same(colors.yellow, groups.test.fg)
+
+            -- No change again
+            Group.default('test', colors.gray0, colors.yellow)
+            assert.are.same(colors.yellow, groups.test.fg)
+        end)
+    end)
 end)

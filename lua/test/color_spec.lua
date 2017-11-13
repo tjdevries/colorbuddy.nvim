@@ -66,6 +66,7 @@ describe('Color class', function()
     it('should create children with multiple arguments', function()
         local test_color = Color.new('foobar', 180, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', {'dark', 0.2}, {'light', 0.2})
+        assert.are.same({{'dark', 0.2}, {'light', 0.2}}, child_color.modifiers)
 
         assert.are.same('kiddo', child_color.name)
         assert.are.same(0.5, child_color.L)

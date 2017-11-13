@@ -1,3 +1,4 @@
+-- {{{1 Imports
 local log = require('colorbuddy.log')
 
 local modifiers = require('colorbuddy.modifiers').modifiers
@@ -6,16 +7,17 @@ local util = require('colorbuddy.util')
 -- luacheck: globals table.extend
 -- luacheck: globals table.slice
 
-local color_hash = {}
+local color_hash = {} -- {{{1
 
-local add_color = function(c)
+local add_color = function(c) -- {{{1
     color_hash[string.lower(c.name)] = c
 end
 
-local is_existing_color = function(raw_key)
+local is_existing_color = function(raw_key) -- {{{1
     return color_hash[string.lower(raw_key)] ~= nil
 end
-local find_color = function(_, raw_key)
+
+local find_color = function(_, raw_key) -- {{{1
     local key = string.lower(raw_key)
 
     if is_existing_color(key) then
@@ -25,15 +27,15 @@ local find_color = function(_, raw_key)
     end
 end
 
-local colors = {}
+local colors = {} -- {{{1
 local __colors_mt = {
     __metatable = {},
     __index = find_color,
 }
 setmetatable(colors, __colors_mt)
 
-local Color = {}
-local IndexColor = function(_, key)
+local Color = {} -- {{{1
+local IndexColor = function(_, key) -- {{{2
     if Color[key] ~= nil then
         return Color[key]
     end
@@ -45,16 +47,16 @@ local IndexColor = function(_, key)
 
     return nil
 end
-local color_object_to_string = function(self)
+local color_object_to_string = function(self) -- {{{2
     return string.format('[%s: (%s, %s, %s)]', self.name, self.H, self.S, self.L)
 end
 
-local color_object_add = function(left, right)
+local color_object_add = function(left, right) -- {{{2
     print('left', unpack(modifiers.add(left.H, left.S, left.L, right, 1)))
-    return Color.private_create(nil, unpack(modifiers.add(left.H, left.S, left.L, right, 1)))
+    return Color.__private_create(nil, unpack(modifiers.add(left.H, left.S, left.L, right, 1)))
 end
 
-local __local_mt = {
+local __local_mt = { -- {{{2
     __type__ = 'color',
     __metatable = {},
     __index = IndexColor,
@@ -64,23 +66,34 @@ local __local_mt = {
     __add = color_object_add,
 }
 
-Color.private_create = function(name, H, S, L, mods)
+Color.__private_create = function(name, H, S, L, mods) -- {{{2
     return setmetatable({
         __type__ = 'color',
         name = name,
         H = H,
         S = S,
         L = L,
-        children = {},
         modifiers = mods,
+
+        -- Color objects that depend on what this color is
+        --  When "self" is changed, we update the attributes of these colors.
+        --  See: |apply_modifier|
+        children = {},
+
+        -- Group objects that depend on what this color is
+        --  When "self" is changed, we notify these groups that we have changed.
+        --  Those groups are in charge of updating their configuration and Neovim.
+        --  See: |apply_modifier| and |new|
+        consumers = {},
+
     }, __local_mt)
 end
 
--- Color:
---  name
---  H, S, L
---  children: A table of all the colors that depend on this color
-Color.new = function(name, H, S, L, mods)
+Color.new = function(name, H, S, L, mods) -- {{{2
+    -- Color:
+    --  name
+    --  H, S, L
+    --  children: A table of all the colors that depend on this color
     assert(__local_mt)
 
     if type(H) == "string" and H:sub(1, 1) == "#" and H:len() == 7 then
@@ -95,15 +108,23 @@ Color.new = function(name, H, S, L, mods)
         object.H = H
         object.S = S
         object.L = L
+
+        -- FIXME: Alert any colors that depend on this object that we have a new definition
+        -- and then apply the modifiers correctly
+
+        for consumer, _ in pairs(object.consumers) do
+            log.info('Updating consumer:', consumer)
+            consumer:update()
+        end
     else
-        object = Color.private_create(name, H, S, L, mods)
+        object = Color.__private_create(name, H, S, L, mods)
         add_color(object)
     end
 
     return object
 end
 
-Color.to_rgb = function(self, H, S, L)
+Color.to_rgb = function(self, H, S, L) -- {{{2
     if H == nil then H = self.H end
     if S == nil then S = self.S end
     if L == nil then L = self.L end
@@ -118,11 +139,10 @@ Color.to_rgb = function(self, H, S, L)
     return buffer
 end
 
-Color.apply_modifier = function(self, modifier_key, ...)
+Color.apply_modifier = function(self, modifier_key, ...) -- {{{2
     log.debug('Applying Modifier for:', self.name, ' / ', modifier_key)
     if modifiers[modifier_key] == nil then
-        print('Invalid key:', modifier_key, '. Please use a valid key')
-        return nil
+        error(string.format('Invalid key: "%s". Please use a valid key', modifier_key))
     end
 
     local new_hsl = modifiers[modifier_key](self.H, self.S, self.L, ...)
@@ -136,12 +156,11 @@ Color.apply_modifier = function(self, modifier_key, ...)
     -- FIXME: Call an event to update any color groups
 end
 
-Color._add_child = function(self, child)
+Color._add_child = function(self, child) -- {{{2
     self.children[string.lower(child.name)] = child
 end
 
-
-Color.new_child = function(self, name, ...)
+Color.new_child = function(self, name, ...) -- {{{2
     if self.children[string.lower(name)] ~= nil then
         print('ERROR: must not use same name')
         return nil
@@ -164,17 +183,21 @@ Color.new_child = function(self, name, ...)
             end
         end
     end
-    print()
-    print(name)
-    print()
-    local kid = Color.new(name, unpack(hsl_table))
+
+    local kid_args = {unpack(hsl_table)}
+    kid_args[4] = {}
+    for index, passed_arg in ipairs({...}) do
+        kid_args[4][index] = passed_arg
+    end
+
+    local kid = Color.new(name, unpack(kid_args))
 
     self:_add_child(kid)
 
     return kid
 end
 
-local is_color_object = function(c)
+local is_color_object = function(c) -- {{{2
     if c == nil then
         return false
     end
@@ -182,10 +205,10 @@ local is_color_object = function(c)
     return c.__type__ == 'color'
 end
 
-local _clear_colors = function() color_hash = {} end
+local _clear_colors = function() color_hash = {} end -- {{{2
 
 
-return {
+return { -- {{{1
     colors = colors,
     Color = Color,
     is_color_object = is_color_object,
