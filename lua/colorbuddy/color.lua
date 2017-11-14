@@ -1,4 +1,4 @@
--- {{{1 Imports
+
 local log = require('colorbuddy.log')
 
 local modifiers = require('colorbuddy.modifiers').modifiers
@@ -7,17 +7,17 @@ local util = require('colorbuddy.util')
 -- luacheck: globals table.extend
 -- luacheck: globals table.slice
 
-local color_hash = {} -- {{{1
+local color_hash = {}
 
-local add_color = function(c) -- {{{1
+local add_color = function(c)
     color_hash[string.lower(c.name)] = c
 end
 
-local is_existing_color = function(raw_key) -- {{{1
+local is_existing_color = function(raw_key)
     return color_hash[string.lower(raw_key)] ~= nil
 end
 
-local find_color = function(_, raw_key) -- {{{1
+local find_color = function(_, raw_key)
     local key = string.lower(raw_key)
 
     if is_existing_color(key) then
@@ -27,15 +27,15 @@ local find_color = function(_, raw_key) -- {{{1
     end
 end
 
-local colors = {} -- {{{1
+local colors = {}
 local __colors_mt = {
     __metatable = {},
     __index = find_color,
 }
 setmetatable(colors, __colors_mt)
 
-local Color = {} -- {{{1
-local IndexColor = function(_, key) -- {{{2
+local Color = {}
+local IndexColor = function(_, key)
     if Color[key] ~= nil then
         return Color[key]
     end
@@ -47,16 +47,25 @@ local IndexColor = function(_, key) -- {{{2
 
     return nil
 end
-local color_object_to_string = function(self) -- {{{2
+local color_object_to_string = function(self)
     return string.format('[%s: (%s, %s, %s)]', self.name, self.H, self.S, self.L)
 end
 
-local color_object_add = function(left, right) -- {{{2
-    print('left', unpack(modifiers.add(left.H, left.S, left.L, right, 1)))
-    return Color.__private_create(nil, unpack(modifiers.add(left.H, left.S, left.L, right, 1)))
+local color_arithmetic = function(operation)
+    return function(left, right)
+        return Color.__private_create(nil, unpack(modifiers[operation](left.H, left.S, left.L, right, 1)))
+    end
 end
 
-local __local_mt = { -- {{{2
+local color_object_add = function(left, right)
+    return color_arithmetic('add')(left, right)
+end
+
+local color_object_sub = function(left, right)
+    return color_arithmetic('subtract')(left, right)
+end
+
+local __local_mt = {
     __type__ = 'color',
     __metatable = {},
     __index = IndexColor,
@@ -64,9 +73,10 @@ local __local_mt = { -- {{{2
 
     -- FIXME: Determine what the basic arithmetic operators should do for colors...
     __add = color_object_add,
+    __sub = color_object_sub,
 }
 
-Color.__private_create = function(name, H, S, L, mods) -- {{{2
+Color.__private_create = function(name, H, S, L, mods)
     return setmetatable({
         __type__ = 'color',
         name = name,
@@ -89,7 +99,7 @@ Color.__private_create = function(name, H, S, L, mods) -- {{{2
     }, __local_mt)
 end
 
-Color.new = function(name, H, S, L, mods) -- {{{2
+Color.new = function(name, H, S, L, mods)
     -- Color:
     --  name
     --  H, S, L
@@ -124,7 +134,7 @@ Color.new = function(name, H, S, L, mods) -- {{{2
     return object
 end
 
-Color.to_rgb = function(self, H, S, L) -- {{{2
+Color.to_rgb = function(self, H, S, L)
     if H == nil then H = self.H end
     if S == nil then S = self.S end
     if L == nil then L = self.L end
@@ -139,7 +149,7 @@ Color.to_rgb = function(self, H, S, L) -- {{{2
     return buffer
 end
 
-Color.apply_modifier = function(self, modifier_key, ...) -- {{{2
+Color.apply_modifier = function(self, modifier_key, ...)
     log.debug('Applying Modifier for:', self.name, ' / ', modifier_key)
     if modifiers[modifier_key] == nil then
         error(string.format('Invalid key: "%s". Please use a valid key', modifier_key))
@@ -156,11 +166,11 @@ Color.apply_modifier = function(self, modifier_key, ...) -- {{{2
     -- FIXME: Call an event to update any color groups
 end
 
-Color._add_child = function(self, child) -- {{{2
+Color._add_child = function(self, child)
     self.children[string.lower(child.name)] = child
 end
 
-Color.new_child = function(self, name, ...) -- {{{2
+Color.new_child = function(self, name, ...)
     if self.children[string.lower(name)] ~= nil then
         print('ERROR: must not use same name')
         return nil
@@ -197,7 +207,7 @@ Color.new_child = function(self, name, ...) -- {{{2
     return kid
 end
 
-local is_color_object = function(c) -- {{{2
+local is_color_object = function(c)
     if c == nil then
         return false
     end
@@ -205,10 +215,10 @@ local is_color_object = function(c) -- {{{2
     return c.__type__ == 'color'
 end
 
-local _clear_colors = function() color_hash = {} end -- {{{2
+local _clear_colors = function() color_hash = {} end
 
 
-return { -- {{{1
+return {
     colors = colors,
     Color = Color,
     is_color_object = is_color_object,

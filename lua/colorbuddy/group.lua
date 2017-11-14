@@ -1,5 +1,3 @@
-
--- {{{ Imports
 local execute = require('colorbuddy.execute')
 local nvim = require('colorbuddy.nvim')
 
@@ -7,7 +5,6 @@ local is_color_object = require('colorbuddy.color').is_color_object
 local is_style_object = require('colorbuddy.style').is_style_object
 
 local styles = require('colorbuddy.style').styles
--- }}}
 
 local is_group_object = function(g)
     if g == nil then
@@ -16,7 +13,6 @@ local is_group_object = function(g)
 
     return g.__type__ == 'group'
 end
-
 
 local group_hash = {}
 local find_group = function(_, raw_key)
@@ -36,17 +32,16 @@ local __groups_mt = {
 }
 setmetatable(groups, __groups_mt)
 
-
--- {{{1 Arithmetic Functions
--- {{{2 MixedGroup
 local MixedGroup = {}
--- {{{2 Addition
+
 local group_handle_arithmetic = function(operation)
     return function(left, right)
         local mixed = {
             __type__ = 'mixed',
             __operation__ = operation,
         }
+        -- TODO: Determine if this is actually required or not
+        -- setmetatable(mixed, getmetatable(MixedGroup))
 
         mixed.parents = {
             group = {},
@@ -55,13 +50,22 @@ local group_handle_arithmetic = function(operation)
             mixed = {},
         }
 
-        if left.__type__ == nil then
+        if left.__type__ == nil or mixed.parents[left.__type__] == nil then
             error(string.format('You cannot add these: -> nil type %s, %s', left, right))
         end
 
-        if right.__type__ == nil then
+        if right.__type__ == nil or mixed.parents[right.__type__] == nil then
             error(string.format('You cannot add these: %s, %s <- nil type', left, right))
         end
+
+        if left.name == nil then
+            error(string.format('"Left" has no name: %s', tostring(left)))
+        end
+
+        if right.name == nil then
+            error(string.format('"Right" has no name: %s', tostring(right)))
+        end
+
 
         mixed.parents[left.__type__][left.name] = left
         mixed.parents[right.__type__][right.name] = right
@@ -69,10 +73,11 @@ local group_handle_arithmetic = function(operation)
         mixed.left = left
         mixed.right = right
 
+        mixed.name = string.format('%s:<%s>,%s:<%s>', left.__type__, left.name, right.__type__, right.name)
+
         return mixed
     end
 end
-
 local is_mixed_object = function(m)
     if m == nil then
         return false
@@ -81,7 +86,6 @@ local is_mixed_object = function(m)
     return m.__type__ == 'mixed'
 end
 
--- {{{2 Final creation of mixed group
 local __mixed_group_mt = {
     __metatable = {},
 
@@ -90,8 +94,7 @@ local __mixed_group_mt = {
 }
 setmetatable(MixedGroup, __mixed_group_mt)
 
-
-local Group = {} -- {{{1
+local Group = {}
 
 Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
     local left_item, right_item
@@ -103,19 +106,22 @@ Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
 
     if is_group_object(mixed.left) then
         left_item = mixed.left[group_attr]
+    elseif is_mixed_object(mixed.left) then
+        left_item = Group.apply_mixed_arithmetic(handler, group_attr, mixed.left)
     else
         left_item = mixed.left
     end
 
     if is_group_object(mixed.right) then
         right_item = mixed.right[group_attr]
+    elseif is_mixed_object(mixed.right) then
+        right_item = Group.apply_mixed_arithmetic(handler, group_attr, mixed.right)
     else
         right_item = mixed.right
     end
 
     return execute.map(mixed.__operation__, left_item, right_item)
 end
-
 Group.handle_group_argument = function(handler, val, property, valid_object_function, err_string)
     -- Return the property of the group object
     if is_group_object(val) then
@@ -141,10 +147,7 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
 
     error(err_string .. ': ' .. tostring(val))
 end
-
-
-
-local group_object_to_string = function(self) -- {{{1
+local group_object_to_string = function(self)
     return string.format('[%s: fg=%s, bg=%s, s=%s]',
         self.name
         , self.fg.name
@@ -227,17 +230,13 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
 
     return obj
 end
-
 Group.default = function(name, fg, bg, style, bang)
     return Group.__private_create(name, fg, bg, style, true, bang)
 end
-
-
-Group.new = function(name, fg, bg, style) -- {{{2
+Group.new = function(name, fg, bg, style)
     return Group.__private_create(name, fg, bg, style, false, false)
 end
-
-Group.apply = function(self) -- {{{2
+Group.apply = function(self)
     -- Only clear old highlighting if we're not the default
     if self.__default__ == false then
         -- Clear the current highlighting
@@ -258,7 +257,6 @@ Group.apply = function(self) -- {{{2
         )
     )
 end
-
 Group.update = function(self)
     -- FIXME: Should make sure that all my dependencies have been updated first.
 
@@ -268,9 +266,9 @@ Group.update = function(self)
     -- FIXME: Should alert any depdencies of me that they need to update
 end
 
-local _clear_groups = function() group_hash = {} end -- {{{2
+local _clear_groups = function() group_hash = {} end
 
-return { -- {{{1
+return {
     groups = groups,
     Group = Group,
     is_group_object = is_group_object,

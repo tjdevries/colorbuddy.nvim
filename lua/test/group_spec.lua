@@ -13,6 +13,7 @@ describe('Group object', function()
     before_each(function()
         helper.clear()
 
+        Color.new('red', '#d47d7d')
         Color.new('yellow', '#f0c674')
         Color.new('gray0', '#1d1f21')
     end)
@@ -94,6 +95,37 @@ describe('Group object', function()
             -- No change again
             Group.default('test', colors.gray0, colors.yellow)
             assert.are.same(colors.yellow, groups.test.fg)
+        end)
+    end)
+
+    describe('Should be able to add mixed groups', function()
+        it('should handle multiple mixed groups', function()
+            Group.new('base1', colors.yellow, colors.gray0)
+            Group.new('base2', colors.gray0, colors.red)
+
+            Group.new('mixed1', groups.base1 + groups.base1, colors.gray0)
+
+            -- Should work on the left
+            Group.new('mixed2', groups.base1 + groups.base2 + groups.base1, colors.gray0)
+            assert.are.same(groups.base1.fg + groups.base1.fg + groups.base2.fg, groups.mixed2.fg)
+            -- Should work on the right
+            Group.new('mixed3', groups.base1 + (groups.base1 + groups.base2), colors.gray0)
+            assert.are.same(groups.base1.fg + groups.base1.fg + groups.base2.fg, groups.mixed3.fg)
+        end)
+
+        it('should handle adding and subtracting mixed groups', function()
+            Group.new('base1', colors.yellow, colors.gray0)
+            Group.new('base2', colors.gray0, colors.red)
+
+            Group.new('mixed1', groups.base1 - groups.base1, colors.gray0)
+            helper.eq_float(0, groups.mixed1.fg.H)
+            helper.eq_float(0, groups.mixed1.fg.S)
+            helper.eq_float(0, groups.mixed1.fg.L)
+
+            Group.new('mixed2', colors.red, groups.base1 + groups.base2 - groups.base1)
+            helper.eq_float(groups.base2.bg.H, groups.mixed2.bg.H)
+            helper.eq_float(groups.base2.bg.S, groups.mixed2.bg.S)
+            helper.eq_float(groups.base2.bg.L, groups.mixed2.bg.L)
         end)
     end)
 end)

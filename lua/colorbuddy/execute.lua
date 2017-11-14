@@ -4,11 +4,18 @@ local execute = {}
 execute.add = function(left, right)
     return left + right
 end
-
 execute.subtract = function(left, right)
+    -- if type(left) == 'table' then
+    --     print()
+    --     print()
+    --     print()
+    --     print()
+    --     table.foreach(left, print)
+    --     error(string.format('Unable to subtract: %s - %s', tostring(left), tostring(right)))
+    -- end
+
     return left - right
 end
-
 execute.fif = function(condition, t, f)
     if condition then
         return t
@@ -16,7 +23,6 @@ execute.fif = function(condition, t, f)
         return f
     end
 end
-
 
 local mappings = {
     ['-'] = execute.subtract,
