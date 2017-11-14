@@ -147,7 +147,7 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
 
     error(err_string .. ': ' .. tostring(val))
 end
-local group_object_to_string = function(self)
+Group.__tostring = function(self)
     return string.format('[%s: fg=%s, bg=%s, s=%s]',
         self.name
         , self.fg.name
@@ -159,7 +159,7 @@ end
 local __local_mt = {
     __metatable = {},
     -- __index =
-    __tostring = group_object_to_string,
+    __tostring = Group.__tostring,
 
     -- FIXME: Handle color modifiers --> lighten, darken, etc.
     __add = group_handle_arithmetic('+'),
