@@ -85,20 +85,17 @@ Color.__private_create = function(name, H, S, L, mods)
         L = L,
         modifiers = mods,
 
-        -- Color objects that depend on what this color is
+        -- Objects that depend on what this color is
         --  When "self" is changed, we update the attributes of these colors.
-        --  See: |apply_modifier|
+        --  See: |modifier_apply|
         children = {},
 
-        -- Group objects that depend on what this color is
-        --  When "self" is changed, we notify these groups that we have changed.
-        --  Those groups are in charge of updating their configuration and Neovim.
-        --  See: |apply_modifier| and |new|
-        consumers = {},
+        -- Objects that we depend on
+        --  When "self" is changed, we wait until these have been updated
+        parents = {},
 
     }, __local_mt)
 end
-
 Color.new = function(name, H, S, L, mods)
     -- Color:
     --  name
@@ -122,9 +119,9 @@ Color.new = function(name, H, S, L, mods)
         -- FIXME: Alert any colors that depend on this object that we have a new definition
         -- and then apply the modifiers correctly
 
-        for consumer, _ in pairs(object.consumers) do
-            log.info('Updating consumer:', consumer)
-            consumer:update()
+        for child, _ in pairs(object.children) do
+            log.info('Updating child:', child)
+            child:update()
         end
     else
         object = Color.__private_create(name, H, S, L, mods)
@@ -133,7 +130,6 @@ Color.new = function(name, H, S, L, mods)
 
     return object
 end
-
 Color.to_rgb = function(self, H, S, L)
     if H == nil then H = self.H end
     if S == nil then S = self.S end
@@ -148,28 +144,48 @@ Color.to_rgb = function(self, H, S, L)
 
     return buffer
 end
+Color.modifier_result = function(self, ...)
+    -- Accepts arguments of:
+    --  string: The name of a modifier for a color
+    --  table: the {name, [arguments]} of a modifier
+    local hsl_table = {self.H, self.S, self.L}
 
-Color.apply_modifier = function(self, modifier_key, ...)
-    log.debug('Applying Modifier for:', self.name, ' / ', modifier_key)
-    if modifiers[modifier_key] == nil then
-        error(string.format('Invalid key: "%s". Please use a valid key', modifier_key))
+    for i, current_modifier in ipairs({...}) do
+        if type(current_modifier) == 'string' then
+            if modifiers[current_modifier] ~= nil then
+                log.debug('Applying string: ', i, current_modifier)
+                hsl_table = modifiers[current_modifier](unpack(hsl_table))
+            else
+                error(string.format('Invalid key: "%s". Please use a valid key', current_modifier))
+            end
+        elseif type(current_modifier) == 'table' then
+            local modifier_key = current_modifier[1]
+            local modifier_arguments = table.slice(current_modifier, 2)
+
+            if modifiers[modifier_key] ~= nil then
+                local new_arg_table = table.extend(hsl_table, modifier_arguments)
+                hsl_table = modifiers[modifier_key](unpack(new_arg_table))
+            end
+        end
     end
 
-    local new_hsl = modifiers[modifier_key](self.H, self.S, self.L, ...)
+    return hsl_table
+end
+Color.modifier_apply = function(self, ...)
+    log.debug('Applying Modifier for:', self.name, ' / ', ...)
+    local new_hsl = self:modifier_result(...)
     self.H, self.S, self.L = unpack(new_hsl)
 
     -- Update all of the children.
     for _, child in pairs(self.children) do
-        child:apply_modifier(modifier_key, ...)
+        child:modifier_apply(...)
     end
     -- FIXME: Check for loops within the children.
     -- FIXME: Call an event to update any color groups
 end
-
 Color._add_child = function(self, child)
-    self.children[string.lower(child.name)] = child
+    self.children[child] = true
 end
-
 Color.new_child = function(self, name, ...)
     if self.children[string.lower(name)] ~= nil then
         print('ERROR: must not use same name')
@@ -177,22 +193,7 @@ Color.new_child = function(self, name, ...)
     end
 
     log.debug('New Child: ', self, name, ...)
-    local hsl_table = {self.H, self.S, self.L}
-
-    for i, v in ipairs({...}) do
-        log.debug('(i, v)', i, v)
-        if type(v) == 'string' then
-            if modifiers[v] ~= nil then
-                log.debug('Applying string: ', i, v)
-                hsl_table = modifiers[v](unpack(hsl_table))
-            end
-        elseif type(v) == 'table' then
-            if modifiers[v[1]] ~= nil then
-                local new_arg_table = table.extend(hsl_table, table.slice(v, 2))
-                hsl_table = modifiers[v[1]](unpack(new_arg_table))
-            end
-        end
-    end
+    local hsl_table = self:modifier_result(...)
 
     local kid_args = {unpack(hsl_table)}
     kid_args[4] = {}
@@ -205,6 +206,10 @@ Color.new_child = function(self, name, ...)
     self:_add_child(kid)
 
     return kid
+end
+Color.update = function(self, updated)
+
+    return
 end
 
 local is_color_object = function(c)

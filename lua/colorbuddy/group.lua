@@ -213,10 +213,8 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
             bg = bg_color,
             style = style_style,
 
-            group_children = {},
-            color_children = {},
-            -- Don't think I need this... Leaving it here as a reminder for when I'm wrong
-            -- style_children = {}
+            children = {},
+            parents = {},
         }, __local_mt)
 
         group_hash[name] = obj
@@ -257,11 +255,22 @@ Group.apply = function(self)
         )
     )
 end
-Group.update = function(self)
+Group.update = function(self, updated)
+    -- The hash map we'll be using to track the updates already completed
+    if updated == nil then
+        updated = {}
+    end
+
+    -- We've already updated this grouop, just skip it
+    if updated[self] then
+        return
+    end
+
     -- FIXME: Should make sure that all my dependencies have been updated first.
 
     -- Let neovim know that we've updated
     self:apply()
+    updated[self] = true
 
     -- FIXME: Should alert any depdencies of me that they need to update
 end

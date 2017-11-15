@@ -78,7 +78,7 @@ describe('Color class', function()
         local child_color = test_color:new_child('kiddo', 'dark')
         local light_color = test_color:new_child('lighter', 'light')
 
-        test_color:apply_modifier('dark')
+        test_color:modifier_apply('dark')
 
         assert.are.same(0.5 - 0.1 - 0.1, child_color.L)
         assert.are.same(0.5 + 0.1 - 0.1, light_color.L)
@@ -89,7 +89,7 @@ describe('Color class', function()
         local child_color = test_color:new_child('kiddo', 'dark')
         local grandchild_color = child_color:new_child('grandkiddo', {'dark', 0.2})
 
-        test_color:apply_modifier('dark')
+        test_color:modifier_apply('dark')
 
         helper.eq_float(0.5 - 0.1 - 0.1, child_color.L)
         helper.eq_float(child_color.L - 0.2, grandchild_color.L)
