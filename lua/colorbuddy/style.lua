@@ -3,6 +3,8 @@ local _ = require('colorbuddy.util')
 -- luacheck: globals table.extend
 -- luacheck: globals table.slice
 
+local key_concat = _.key_concat
+
 
 local __local_mt
 
@@ -24,19 +26,6 @@ setmetatable(styles, __styles_mt)
 
 local style_tostring = function(self)
     return string.format('style:<%s>', self.name)
-end
-
-local key_concat = function(t, str)
-    local key_table = {}
-    local index = 1
-
-    for key, _ in pairs(t) do
-        key_table[index] = key
-        index = index + 1
-    end
-
-    table.sort(key_table)
-    return table.concat(key_table, str)
 end
 
 local private_create = function(values)

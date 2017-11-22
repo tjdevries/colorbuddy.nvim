@@ -1,5 +1,6 @@
 local execute = require('colorbuddy.execute')
 local nvim = require('colorbuddy.nvim')
+local util = require('colorbuddy.util')
 
 local is_color_object = require('colorbuddy.color').is_color_object
 local is_style_object = require('colorbuddy.style').is_style_object
@@ -95,6 +96,7 @@ local __mixed_group_mt = {
 setmetatable(MixedGroup, __mixed_group_mt)
 
 local Group = {}
+Group.__defaults = {}
 
 Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
     local left_item, right_item
@@ -122,7 +124,19 @@ Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
 
     return execute.map(mixed.__operation__, left_item, right_item)
 end
+Group.set_default = function(property, value)
+    Group.__defaults[property] = value
+end
+Group.get_default = function(property)
+    return Group.__defaults[property]
+end
 Group.handle_group_argument = function(handler, val, property, valid_object_function, err_string)
+    -- TODO: Keep track of the dependencies here?
+    -- If the value is nil, and we have a default, just use that instead
+    if val == nil and Group.get_default(property) ~= nil then
+        return Group.get_default(property)
+    end
+
     -- Return the property of the group object
     if is_group_object(val) then
         return val[property]
@@ -145,7 +159,12 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
         end
     end
 
-    error(err_string .. ': ' .. tostring(val))
+    local val_repr = tostring(val)
+    if type(val) == 'table' then
+        val_repr = '{table}: ' .. tostring(val) .. table.concat(val, ',') .. ' / ' .. util.key_concat(val, ',')
+    end
+
+    error(err_string .. ': ' .. val_repr)
 end
 Group.__tostring = function(self)
     return string.format('[%s: fg=%s, bg=%s, s=%s]',

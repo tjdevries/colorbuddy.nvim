@@ -129,4 +129,18 @@ util.clamp = function(val, min, max)
   if val > max then return max end
 end
 
+
+util.key_concat = function(t, str)
+    local key_table = {}
+    local index = 1
+
+    for key, _ in pairs(t) do
+        key_table[index] = key
+        index = index + 1
+    end
+
+    table.sort(key_table)
+    return table.concat(key_table, str)
+end
+
 return util

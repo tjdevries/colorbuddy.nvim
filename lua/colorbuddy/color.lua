@@ -42,7 +42,16 @@ local IndexColor = function(_, key)
 
     -- Return what the modifiers would be if we ran it based on the table's values
     if modifiers[key] then
-        return function(s_table, ...) return modifiers[key](s_table.H, s_table.S, s_table.L, ...) end
+        return function(s_table, ...)
+            local kiddo = Color.new(
+                s_table.name .. tostring(os.clock()),
+                unpack(modifiers[key](s_table.H, s_table.S, s_table.L, ...))
+            )
+
+            s_table:_add_child(kiddo)
+
+            return kiddo
+        end
     end
 
     return nil
@@ -50,17 +59,14 @@ end
 local color_object_to_string = function(self)
     return string.format('[%s: (%s, %s, %s)]', self.name, self.H, self.S, self.L)
 end
-
 local color_arithmetic = function(operation)
     return function(left, right)
         return Color.__private_create(nil, unpack(modifiers[operation](left.H, left.S, left.L, right, 1)))
     end
 end
-
 local color_object_add = function(left, right)
     return color_arithmetic('add')(left, right)
 end
-
 local color_object_sub = function(left, right)
     return color_arithmetic('subtract')(left, right)
 end
@@ -165,6 +171,8 @@ Color.modifier_result = function(self, ...)
             if modifiers[modifier_key] ~= nil then
                 local new_arg_table = table.extend(hsl_table, modifier_arguments)
                 hsl_table = modifiers[modifier_key](unpack(new_arg_table))
+            else
+                error(string.format('Invalid key: "%s". Please use a valid key', modifier_key))
             end
         end
     end
@@ -177,7 +185,7 @@ Color.modifier_apply = function(self, ...)
     self.H, self.S, self.L = unpack(new_hsl)
 
     -- Update all of the children.
-    for _, child in pairs(self.children) do
+    for child, _ in pairs(self.children) do
         child:modifier_apply(...)
     end
     -- FIXME: Check for loops within the children.
@@ -208,8 +216,8 @@ Color.new_child = function(self, name, ...)
     return kid
 end
 Color.update = function(self, updated)
-
-    return
+    if self and updated then return true end
+    return true
 end
 
 local is_color_object = function(c)

@@ -40,10 +40,11 @@ describe('Color class', function()
 
     it('should lighten rgb', function()
         local test_color = Color.new('foobar', '#123456')
+        local lighter_color = test_color:light()
         assert.are.same('#123456', test_color:to_rgb())
 
-        assert.are.same(test_color.H, test_color:light()[1])
-        helper.eq_float(test_color.L + 0.1, test_color:light()[3])
+        assert.are.same(test_color.H, lighter_color.H)
+        assert.are.same(test_color.L + 0.1, lighter_color.L)
     end)
 
     it('should create children', function()
@@ -55,12 +56,14 @@ describe('Color class', function()
     end)
 
     it('should create children with arguments', function()
-        local test_color = Color.new('foobar', 180, 0.5, 0.5)
+        local log = require('colorbuddy.log')
+        log.level = 'debug'
+        local test_color = Color.new('foobar_no_arg', 180, 0.5, 0.5)
         local child_color = test_color:new_child('kiddo', {'dark', 0.2})
 
         assert.are.same('kiddo', child_color.name)
         assert.are.same(0.3, child_color.L)
-        assert.are.same(test_color.children['kiddo'], child_color)
+        assert.are.same(test_color.children[child_color], true)
     end)
 
     it('should create children with multiple arguments', function()
@@ -70,7 +73,7 @@ describe('Color class', function()
 
         assert.are.same('kiddo', child_color.name)
         assert.are.same(0.5, child_color.L)
-        assert.are.same(test_color.children['kiddo'], child_color)
+        assert.are.same(test_color.children[child_color], true)
     end)
 
     it('should update children when parent is updated', function()

@@ -2,27 +2,6 @@
 local log = require('colorbuddy.log')
 local util = require('colorbuddy.util')
 
--- Modifier table
--- Must have signature of (H, S, L, ...)
--- and then return {H, S, L}
-local modifiers = {}
-
-modifiers.dark = function(H, S, L, amount)
-    if amount == nil or amount == {} then
-        amount = 0.1
-    end
-
-    return {H, S, L - amount}
-end
-
-modifiers.light = function(H, S, L, amount)
-    if amount == nil then
-        amount = 0.1
-    end
-
-    return {H, S, L + amount}
-end
-
 local operator_intensity = function(operand)
     local supported_metamethods = {
         ['-'] = true,
@@ -63,15 +42,34 @@ local operator_intensity = function(operand)
         return {util.rgb_to_hsl(unpack(result_rgb))}
     end
 end
+-- Modifier table
+-- Must have signature of (H, S, L, ...)
+-- and then return {H, S, L}
+local modifiers = {}
+modifiers.dark = function(H, S, L, amount)
+    if amount == nil or amount == {} then
+        amount = 0.1
+    end
 
+    return {H, S, L - amount}
+end
+modifiers.light = function(H, S, L, amount)
+    if amount == nil then
+        amount = 0.1
+    end
+
+    return {H, S, L + amount}
+end
 modifiers.subtract = function(H, S, L, color_object, intensity)
     return operator_intensity('-')(H, S, L, color_object, intensity)
 end
-
 modifiers.add = function(H, S, L, color_object, intensity)
     return operator_intensity('+')(H, S, L, color_object, intensity)
 end
-
+modifiers.negative = function(H, S, L)
+    -- TODO: Implement
+    return {H, S, L}
+end
 
 return {
     modifiers = modifiers
