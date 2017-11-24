@@ -35,6 +35,12 @@ local __colors_mt = {
 setmetatable(colors, __colors_mt)
 
 local Color = {}
+local __current_index = 0
+local getIndexColorNumber = function()
+    __current_index = __current_index + 1
+    return __current_index
+end
+
 local IndexColor = function(_, key)
     if Color[key] ~= nil then
         return Color[key]
@@ -43,12 +49,14 @@ local IndexColor = function(_, key)
     -- Return what the modifiers would be if we ran it based on the table's values
     if modifiers[key] then
         return function(s_table, ...)
-            local kiddo = Color.new(
-                s_table.name .. tostring(os.clock()),
-                unpack(modifiers[key](s_table.H, s_table.S, s_table.L, ...))
-            )
+            if s_table == nil then
+                print(debug.traceback())
+                return nil
+            end
 
-            s_table:_add_child(kiddo)
+            local kiddo = s_table:new_child(
+                s_table.name .. '-' .. tostring(getIndexColorNumber()), {key, unpack({...})}
+            )
 
             return kiddo
         end
@@ -83,22 +91,27 @@ local __local_mt = {
 }
 
 Color.__private_create = function(name, H, S, L, mods)
+    if type(mods) == type({}) and mods ~= {} then
+        H, S, L = unpack(Color.modifier_result({H=H, S=S, L=L}, unpack(mods)))
+    end
+
     return setmetatable({
         __type__ = 'color',
         name = name,
         H = H,
         S = S,
         L = L,
-        modifiers = mods,
+        mods = mods,
 
         -- Objects that depend on what this color is
         --  When "self" is changed, we update the attributes of these colors.
         --  See: |modifier_apply|
         children = {},
 
-        -- Objects that we depend on
+        -- TODO: Maybe make more than one of these?
+        -- The parent of this object
         --  When "self" is changed, we wait until these have been updated
-        parents = {},
+        parent = {},
 
     }, __local_mt)
 end
@@ -109,7 +122,18 @@ Color.new = function(name, H, S, L, mods)
     --  children: A table of all the colors that depend on this color
     assert(__local_mt)
 
-    if type(H) == "string" and H:sub(1, 1) == "#" and H:len() == 7 then
+    if H == nil then
+        local obj =  {
+            __type__ = 'color',
+            name = name,
+            _add_child = function(...) return {...} end,
+            to_rgb = Color.to_rgb
+        }
+
+        add_color(obj)
+
+        return obj
+    elseif type(H) == "string" and H:sub(1, 1) == "#" and H:len() == 7 then
         H, S, L = util.rgb_string_to_hsl(H)
     end
 
@@ -122,12 +146,19 @@ Color.new = function(name, H, S, L, mods)
         object.S = S
         object.L = L
 
+        object.mods = mods
+
         -- FIXME: Alert any colors that depend on this object that we have a new definition
         -- and then apply the modifiers correctly
 
         for child, _ in pairs(object.children) do
-            log.info('Updating child:', child)
-            child:update()
+            log.debug('Updating child:', child)
+
+            if child.update ~= nil then
+                child:update()
+            else
+                log.warn('No update method found for:', child)
+            end
         end
     else
         object = Color.__private_create(name, H, S, L, mods)
@@ -137,6 +168,10 @@ Color.new = function(name, H, S, L, mods)
     return object
 end
 Color.to_rgb = function(self, H, S, L)
+    if self.name == 'none' then
+        return 'none'
+    end
+
     if H == nil then H = self.H end
     if S == nil then S = self.S end
     if L == nil then L = self.L end
@@ -186,13 +221,19 @@ Color.modifier_apply = function(self, ...)
 
     -- Update all of the children.
     for child, _ in pairs(self.children) do
-        child:modifier_apply(...)
+        if child.update ~= nil then
+            child:update()
+        else
+            log.warn('No update method found for:', child)
+            log.warn('TYPE WAS: ', child.__type__)
+        end
     end
     -- FIXME: Check for loops within the children.
     -- FIXME: Call an event to update any color groups
 end
 Color._add_child = function(self, child)
     self.children[child] = true
+    child.parent = self
 end
 Color.new_child = function(self, name, ...)
     if self.children[string.lower(name)] ~= nil then
@@ -201,9 +242,7 @@ Color.new_child = function(self, name, ...)
     end
 
     log.debug('New Child: ', self, name, ...)
-    local hsl_table = self:modifier_result(...)
-
-    local kid_args = {unpack(hsl_table)}
+    local kid_args = {self.H, self.S, self.L}
     kid_args[4] = {}
     for index, passed_arg in ipairs({...}) do
         kid_args[4][index] = passed_arg
@@ -216,8 +255,24 @@ Color.new_child = function(self, name, ...)
     return kid
 end
 Color.update = function(self, updated)
-    if self and updated then return true end
-    return true
+    -- TODO: We don't full handle loops right now, since we  don't pass updated to anywhere
+    if updated == nil then
+        updated = {}
+    end
+
+    if updated[self] then
+        return
+    end
+
+    updated[self] = true
+
+    self.H = self.parent.H
+    self.S = self.parent.S
+    self.L = self.parent.L
+
+    if type(self.mods) == type({})  then
+        self:modifier_apply(unpack(self.mods))
+    end
 end
 
 local is_color_object = function(c)
@@ -230,6 +285,8 @@ end
 
 local _clear_colors = function() color_hash = {} end
 
+
+Color.new('none')
 
 return {
     colors = colors,

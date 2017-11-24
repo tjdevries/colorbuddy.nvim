@@ -70,6 +70,43 @@ modifiers.negative = function(H, S, L)
     -- TODO: Implement
     return {H, S, L}
 end
+modifiers.average = function(H, S, L, color_object)
+    local r1, g1, b1, r2, g2, b2
+
+    if H == nil then
+        log.warn('Passed H was nil', H, S, L)
+        return H, S, L
+    end
+
+    r1, g1, b1 = util.hsl_to_rgb(H, S, L)
+
+    if color_object.H == nil then
+        log.warn('H was nil', unpack(color_object))
+        return H, S, L
+    elseif color_object.S == nil then
+        log.warn('S was nil', unpack(color_object))
+        return H, S, L
+    elseif color_object.L == nil then
+        log.warn('L was nil', unpack(color_object))
+        return H, S, L
+    end
+
+    r2, g2, b2 = util.hsl_to_rgb(color_object.H, color_object.S, color_object.L)
+
+    r1 = r1 * 255
+    g1 = g1 * 255
+    b1 = b1 * 255
+    r2 = r2 * 255
+    g2 = g2 * 255
+    b2 = b2 * 255
+
+    local r_average = ((r1^2 + r2^2) / 2)^(1/2) / 255
+    local g_average = ((g1^2 + g2^2) / 2)^(1/2) / 255
+    local b_average = ((b1^2 + b2^2) / 2)^(1/2) / 255
+
+    return {util.rgb_to_hsl(r_average, g_average, b_average)}
+end
+
 
 return {
     modifiers = modifiers

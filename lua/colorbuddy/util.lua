@@ -122,7 +122,15 @@ util.hsl_to_rgb = function(h, s, L)
 
     return hue_to_rgb(m1, m2, h + 1/3), hue_to_rgb(m1, m2, h), hue_to_rgb(m1, m2, h - 1/3)
 end
+util.hsl_to_rgb_string = function(H, S, L)
+  local r, g, b = util.hsl_to_rgb(H, S, L)
 
+  r = r * 255
+  g = g * 255
+  b = b * 255
+
+  return string.format('#%02x%02x%02x', r, g, b)
+end
 util.clamp = function(val, min, max)
   if val > min and val < max then return val end
   if val < min then return min end

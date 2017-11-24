@@ -1,4 +1,5 @@
 local execute = require('colorbuddy.execute')
+local log = require('colorbuddy.log')
 local nvim = require('colorbuddy.nvim')
 local util = require('colorbuddy.util')
 
@@ -164,20 +165,25 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
         val_repr = '{table}: ' .. tostring(val) .. table.concat(val, ',') .. ' / ' .. util.key_concat(val, ',')
     end
 
+    print(debug.traceback())
     error(err_string .. ': ' .. val_repr)
 end
 Group.__tostring = function(self)
+    if self == nil then
+        return ''
+    end
+
     return string.format('[%s: fg=%s, bg=%s, s=%s]',
-        self.name
-        , self.fg.name
-        , self.bg.name
-        , self.style.name
+        tostring(self.name)
+        , tostring(self.fg.name)
+        , tostring(self.bg.name)
+        , tostring(self.style.name)
     )
 end
 
 local __local_mt = {
     __metatable = {},
-    -- __index =
+    __index = Group,
     __tostring = Group.__tostring,
 
     -- FIXME: Handle color modifiers --> lighten, darken, etc.
@@ -206,6 +212,14 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
     )
 
     local already_exists = Group.is_existing_group(name)
+
+    if not is_color_object(fg_color) then
+        error('Bad foreground color: ' .. debug.traceback())
+    end
+
+    if not is_color_object(bg_color) then
+        error('Bad background color: ' .. debug.traceback())
+    end
 
     local obj
     if already_exists then
@@ -240,6 +254,8 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
     end
 
     -- Notify producers they have a new consumer
+    obj.fg:_add_child(obj)
+    obj.bg:_add_child(obj)
 
 
     -- Send Neovim our updated group
@@ -292,6 +308,13 @@ Group.update = function(self, updated)
     updated[self] = true
 
     -- FIXME: Should alert any depdencies of me that they need to update
+    for child, _ in pairs(self.children) do
+        if child.update ~= nil then
+            child:update(updated)
+        else
+            log.warn('No update method found for:', child)
+        end
+    end
 end
 
 local _clear_groups = function() group_hash = {} end

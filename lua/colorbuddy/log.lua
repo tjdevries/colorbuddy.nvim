@@ -23,7 +23,10 @@ end
 
 log.warn = function(...)
     if log.level_enum[log.level] <= log.level_enum['warn'] then
+        print('----------------------------------------------------------------------')
         print('[WARN ]', ...)
+        -- print(debug.traceback())
+        print('----------------------------------------------------------------------')
     end
 end
 
