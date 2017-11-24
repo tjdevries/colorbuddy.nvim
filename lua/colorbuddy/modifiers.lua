@@ -67,8 +67,9 @@ modifiers.add = function(H, S, L, color_object, intensity)
     return operator_intensity('+')(H, S, L, color_object, intensity)
 end
 modifiers.negative = function(H, S, L)
-    -- TODO: Implement
-    return {H, S, L}
+    local rgb = {util.hsl_to_rgb(H, S, L)}
+
+    return {util.rgb_to_hsl(1 - rgb[1], 1 - rgb[2], 1 - rgb[3])}
 end
 modifiers.average = function(H, S, L, color_object)
     local r1, g1, b1, r2, g2, b2
@@ -82,13 +83,13 @@ modifiers.average = function(H, S, L, color_object)
 
     if color_object.H == nil then
         log.warn('H was nil', unpack(color_object))
-        return H, S, L
+        return {H, S, L}
     elseif color_object.S == nil then
         log.warn('S was nil', unpack(color_object))
-        return H, S, L
+        return {H, S, L}
     elseif color_object.L == nil then
         log.warn('L was nil', unpack(color_object))
-        return H, S, L
+        return {H, S, L}
     end
 
     r2, g2, b2 = util.hsl_to_rgb(color_object.H, color_object.S, color_object.L)
@@ -106,7 +107,9 @@ modifiers.average = function(H, S, L, color_object)
 
     return {util.rgb_to_hsl(r_average, g_average, b_average)}
 end
-
+modifiers.complement = function(H, S, L)
+    return { (180 + H) % 360, S, L }
+end
 
 return {
     modifiers = modifiers

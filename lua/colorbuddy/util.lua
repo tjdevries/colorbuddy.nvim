@@ -11,7 +11,6 @@ table.slice = function(tbl, first, last, step)
 
   return sliced
 end
-
 table.extend = function(t1, t2)
     local t3 = {}
     for i = 1,#t1 do
@@ -24,17 +23,15 @@ table.extend = function(t1, t2)
 
     return t3
 end
-
-
 -- Pretty much all of the util functions come from:
 --      https://github.com/yuri/lua-colors/blob/master/lua/colors.lua
 local util = {}
 
 util.rgb_string_to_hsl = function(rgb)
     return util.rgb_to_hsl(
-        tonumber(rgb:sub(2, 3), 16)  / 256
-        , tonumber(rgb:sub(4, 5), 16) / 256
-        , tonumber(rgb:sub(6, 7), 16)  / 256
+        tonumber(rgb:sub(2, 3), 16)  / 255
+        , tonumber(rgb:sub(4, 5), 16) / 255
+        , tonumber(rgb:sub(6, 7), 16)  / 255
     )
 end
 
@@ -53,14 +50,14 @@ util.rgb_to_hsl = function(r, g, b)
     b = b or 0
 
    --r, g, b = r/255, g/255, b/255
-   local min = math.min(r, g, b)
-   local max = math.max(r, g, b)
+   local min = math.max(math.min(r, g, b), 0)
+   local max = math.min(math.max(r, g, b), 1)
    local delta = max - min
 
    local h, s, l = 0, 0, ((min + max) / 2)
 
    -- Achromatic, can skip the rest
-   if max == min then return max * 360, 0, l end
+   if max == min then return max * 359, 0, l end
 
    if l < 0.5 then s = delta / (max + min) end
    if l >= 0.5 then s = delta / (2 - max - min) end
@@ -93,7 +90,8 @@ end
 -- @return               an R, G, and B component of RGB
 -----------------------------------------------------------------------------
 util.hsl_to_rgb = function(h, s, L)
-    h = h / 360
+    -- h = (h % 360) / 360
+    h = (h / 360) % 1
 
     if s == 0 then
         -- Achromatic result
@@ -120,7 +118,9 @@ util.hsl_to_rgb = function(h, s, L)
         return p
     end
 
-    return hue_to_rgb(m1, m2, h + 1/3), hue_to_rgb(m1, m2, h), hue_to_rgb(m1, m2, h - 1/3)
+    return util.clamp(hue_to_rgb(m1, m2, h + 1/3), 0, 1),
+        util.clamp(hue_to_rgb(m1, m2, h), 0, 1),
+        util.clamp(hue_to_rgb(m1, m2, h - 1/3), 0, 1)
 end
 util.hsl_to_rgb_string = function(H, S, L)
   local r, g, b = util.hsl_to_rgb(H, S, L)
@@ -132,7 +132,7 @@ util.hsl_to_rgb_string = function(H, S, L)
   return string.format('#%02x%02x%02x', r, g, b)
 end
 util.clamp = function(val, min, max)
-  if val > min and val < max then return val end
+  if val >= min and val <= max then return val end
   if val < min then return min end
   if val > max then return max end
 end
