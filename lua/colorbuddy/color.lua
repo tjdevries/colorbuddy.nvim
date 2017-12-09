@@ -27,10 +27,28 @@ local find_color = function(_, raw_key)
     end
 end
 
+local next_color = function(_)
+
+    local stateless_iterator = function(_, k)
+        local v
+
+        k, v = next(color_hash, k)
+
+        if k == 'none' then
+            k, v = next(color_hash, k)
+        end
+
+        if v then return k, v end
+    end
+
+    return stateless_iterator, color_hash, nil
+end
+
 local colors = {}
 local __colors_mt = {
     __metatable = {},
     __index = find_color,
+    __pairs = next_color,
 }
 setmetatable(colors, __colors_mt)
 
@@ -220,9 +238,11 @@ Color.modifier_apply = function(self, ...)
     self.H, self.S, self.L = unpack(new_hsl)
 
     -- Update all of the children.
+    local updated = {}
+
     for child, _ in pairs(self.children) do
         if child.update ~= nil then
-            child:update()
+            child:update(updated)
         else
             log.warn('No update method found for:', child)
             log.warn('TYPE WAS: ', child.__type__)
@@ -230,6 +250,8 @@ Color.modifier_apply = function(self, ...)
     end
     -- FIXME: Check for loops within the children.
     -- FIXME: Call an event to update any color groups
+
+    return updated
 end
 Color._add_child = function(self, child)
     self.children[child] = true
@@ -273,6 +295,8 @@ Color.update = function(self, updated)
     if type(self.mods) == type({})  then
         self:modifier_apply(unpack(self.mods))
     end
+
+    return updated
 end
 
 local is_color_object = function(c)
