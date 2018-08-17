@@ -1,9 +1,25 @@
+
+local log_module = require('colorbuddy.lua_html.log')
+local debug = log_module.debug
+local log = log_module.log
+
 local nvim = vim.api
+
+if debug then
+  package.loaded[ 'colorbuddy.lua_html.log' ] = nil
+  package.loaded[ 'colorbuddy.lua_html.highlighted' ] = nil
+  package.loaded[ 'colorbuddy.lua_html.vim_element' ] = nil
+  package.loaded[ 'colorbuddy.lua_html.syntax_group' ] = nil
+end
+
+log_module.debug = false
 
 local inspect = require('inspect')
 
-local debug = true
-local log = function(...) if debug then print('lua_html:', ...) end end
+local highlighted = require('colorbuddy.lua_html.highlighted')
+local VimElement = require('colorbuddy.lua_html.vim_element')
+local SyntaxGroup = require('colorbuddy.lua_html.syntax_group')
+
 
 local __hl_ids = {}
 local __syn_ids = {}
@@ -29,7 +45,6 @@ local syn_ids = setmetatable({ }, {
   end,
 })
 
-local SyntaxGroup = {}
 local syntax_attributes = setmetatable({}, {
   __index = function(self, key)
     if __syntax_attributes[key] == nil then
@@ -42,90 +57,100 @@ local syntax_attributes = setmetatable({}, {
   end,
 })
 
-local __syntax_group_mt = {
-  __index = function(obj, key)
-    if key == '_' then
-      return rawget(obj, '_')
-    end
-
-    if obj._[key] == nil then
-      log('... accessing neovim // ', obj.synID, '//', key)
-      obj._[key] = nvim.nvim_call_function('synIDattr', { rawget(obj, 'synID'), key, 'gui' })
-    end
-
-    return obj._[key]
-  end,
-}
-
-SyntaxGroup.new = function(self, synID)
-  log('making new syntax group:', synID)
-  local obj = {
-    synID = synID,
-    _ = {}
-  }
-
-  return setmetatable(obj, __syntax_group_mt)
-end
 
 local syn_id_at_location = function(line, column)
-  return nvim.nvim_call_function('synID', { line, column, 1 })
+  return nvim.nvim_call_function('synIDtrans', { nvim.nvim_call_function('synID', { line, column, 1 }) })
 end
 
-local syn_ids_for_line = function(line)
-  local max_column = nvim.nvim_call_function('col', { '$' })
-  local current_line = nvim.nvim_call_function('getline', { line })
+local syn_ids_for_line = function(line, buffer_id)
+  if buffer_id == nil then
+    buffer_id = 0
+  end
 
-  print(current_line)
+  local current_line = nvim.nvim_buf_get_lines(0, line - 1, line, false)[1]
+  local max_column = #current_line + 1
 
   local groups = {}
-  local current_group = nil
+  local previous_id = nil
   local current_text = ''
+
+  local previous_column = 0
   for column = 1,max_column do
     current_id = syn_id_at_location(line, column)
     current_text = current_text .. string.sub(current_line, column - 1, column - 1)
 
-    if current_id ~= current_group then
-      if current_group ~= nil then
-        table.insert(groups, {
-          line = line,
-          column = column,
-          syntax_id = current_group,
-          text = current_text,
-          syntax_name = syntax_attributes[current_group].name,
-        })
+    if current_id ~= previous_id then
+      if previous_id ~= nil then
+        if current_text ~= '' then
+          table.insert(groups, VimElement:new(
+            line,
+            previous_column,
+            column,
+            current_text,
+            syntax_attributes[previous_id]
+          ))
+        end
       end
 
-      current_group = current_id
+      previous_id = current_id
       current_text = ''
+      previous_column = column
     end
+  end
+
+  if current_text ~= '' then
+    table.insert(groups,
+      VimElement:new(line, previous_column, max_column, current_text, syntax_attributes[previous_id])
+    )
   end
 
   return groups
 end
 
-local convert_to_html = function(line_1, line_2)
+local get_html_line = function(line)
+  ids_for_line = syn_ids_for_line(line)
+
+  final_string = ''
+  for index, value in ipairs(ids_for_line) do
+    final_string = final_string .. highlighted.element(value)
+  end
+
+  return highlighted.line(final_string)
 end
 
+local convert_to_html = function(line_1, line_2, output_file)
+  file = io.open(output_file, 'w')
 
--- local comment = syntax_attributes[syn_ids['comment']]
--- print(inspect(comment))
--- print(inspect(comment.bg))
--- local this_id = syn_id_at_location(63, 1)
--- print(this_id)
--- print(nvim.nvim_call_function('synIDattr', { this_id , 'name' }))
+  if file == nil then
+    print('File could not be read: ', output_file)
+    return
+  else
+    print('Writing to: ', output_file)
+  end
 
--- print(require('inspect')(syn_ids_for_line(6)))
+  local parsed_lines = {}
+  local __required_groups = {}
+  local required_groups = {}
 
-line_6_ids = syn_ids_for_line(6)
-lines_to_set = {}
+  for line=line_1,line_2 do
+    current_ids = syn_ids_for_line(line)
+    table.insert(parsed_lines, current_ids)
 
-for index, value in ipairs(line_6_ids) do
-  table.insert(lines_to_set, string.format('%-20s: %s', value.syntax_name, value.text))
+    for _, synID in ipairs(current_ids) do
+      if __required_groups[synID.name] == nil then
+        __required_groups[synID.name] = true
+        required_groups[synID] = true
+      end
+    end
+  end
+
+  file:write(highlighted.file(line_1, parsed_lines, required_groups, syntax_attributes, syn_ids))
+  file:close()
 end
 
-print(inspect(lines_to_set))
-nvim.nvim_buf_set_lines(14, 0, -1, false, lines_to_set)
+-- convert_to_html(5, 100, nvim.nvim_call_function('expand', {'~/test/color_output.html'}))
 
 return {
   syntax_attributes = syntax_attributes,
+  convert_to_html = convert_to_html,
 }

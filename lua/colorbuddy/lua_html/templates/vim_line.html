@@ -1,0 +1,8 @@
+{%
+local currentLine = line + startLine
+%}
+<span class="vimLine"><pre class="vimLineNumber">[{{ string.format("%3s", currentLine) }}]: </pre>
+    {% for _, group in ipairs(groups) do %}
+        {(templates/element.html, { group = group })}
+    {% end %}
+</span><br>

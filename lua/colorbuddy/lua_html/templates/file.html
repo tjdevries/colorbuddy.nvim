@@ -1,0 +1,65 @@
+<html>
+    <head>
+        <title>This is an example</title>
+
+        <style>
+
+body {
+    background: {{ syntaxAttributes[synIDs['normal']].bg }};
+    color: {{ syntaxAttributes[synIDs['normal']].fg }};
+}
+
+
+span {
+    font-family: Iosevka, monospace;
+}
+
+span.vimLine {
+    display: block;
+}
+
+pre {
+    display: inline-block;
+    margin: 0px;
+    float: left;
+}
+
+pre.vimLineNumber {
+    font-family: Iosevka;
+    font-size: smaller;
+    float: left;
+}
+
+{% for requiredGroup, _ in pairs(requiredGroups) do %}
+pre.{{ requiredGroup.name }} {
+    color: {{ requiredGroup.fg }};
+    {% if requiredGroup.italic == '1' then %}
+        font-style: italic;
+    {% end %}
+
+    {% if requiredGroup.bold == '1' then %}
+        font-weight: bold;
+    {% end %}
+}
+{% end %}
+
+        </style>
+
+        <script>
+            function copyToClipboard(str) {
+                function listener(e) { e.clipboardData.setData("text/html", str); e.preventDefault(); }
+
+                document.addEventListener("copy", listener);
+                document.execCommand("copy");
+                document.removeEventListener("copy", listener);
+            };
+        </script>
+    </head>
+    <body id="test">
+        {% for line, groups in ipairs(lines) do %}
+            {(templates/vim_line.html, { startLine = startLine, line = line, groups = groups })}
+        {% end %}
+    </body>
+
+    <button onclick="copyToClipboard(document.getElementById('test'))"> Copy</button>
+</html>
