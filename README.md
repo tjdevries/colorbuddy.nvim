@@ -1,5 +1,13 @@
 # colorbuddy.vim
 
+## Benefits
+
+Live changing of colors (and inherited colors!)
+
+![changing_colors](./media/color_change.svg)
+
+## Example
+
 Your color buddy for making cool neovim color schemes. Write your colorscheme in lua!
 
 Example:
@@ -30,6 +38,5 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 ```
 
 ## TODO:
-- [ ] Change a color -> changes color scheme
 - [ ] Highlight links
 - [ ] Highlight defaults
