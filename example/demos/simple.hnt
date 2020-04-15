@@ -1,0 +1,28 @@
+### Simple demo to show what can happen when you change the color scheme.
+## key_delay 10
+## feed_full
+
+### :set timeoutlen=10\<CR>
+
+:e! ./example/change_function.lua\<CR>
+
+:silent! foldopen\<CR>
+:silent! set foldmethod=manaul\<CR>
+
+:execute 'lua' . getline(1)\<CR>
+
+## key_delay 80
+
+:4\<CR>
+:execute 'lua ' . getline(4)\<CR>
+
+## pause
+
+:7\<CR>
+:execute 'lua ' . getline(7)\<CR>
+
+## pause
+
+:qa!\<CR>
+
+### :set timeoutlen=1000\<CR>

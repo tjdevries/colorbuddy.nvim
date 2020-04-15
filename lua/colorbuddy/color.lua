@@ -3,17 +3,20 @@ local log = require('colorbuddy.log')
 
 local modifiers = require('colorbuddy.modifiers').modifiers
 local util = require('colorbuddy.util')
--- util gives us some new globals:
--- luacheck: globals table.extend
--- luacheck: globals table.slice
+
+local Color
 
 local color_hash = {}
 
-local add_color = function(c)
+local function add_color(c)
+    log.debug("Adding color: ", c.name)
+
     color_hash[string.lower(c.name)] = c
+
+    log.debug("Success")
 end
 
-local is_existing_color = function(raw_key)
+local function is_existing_color(raw_key)
     return color_hash[string.lower(raw_key)] ~= nil
 end
 
@@ -25,12 +28,7 @@ local find_color = function(_, raw_key)
     else
         local nvim_color = vim.fn.nvim_get_color_by_name(key)
         if nvim_color > 0 then
-            print('Setting key')
-            print(key)
-            print('#' .. bit.tohex(nvim_color, 6))
-            Color.new(key, '#' .. bit.tohex(nvim_color, 6))
-
-            return Color[key]
+            return Color.new(key, '#' .. bit.tohex(nvim_color, 6))
         end
 
         return {}
@@ -38,7 +36,6 @@ local find_color = function(_, raw_key)
 end
 
 local next_color = function(_)
-
     local stateless_iterator = function(_, k)
         local v
 
@@ -62,7 +59,7 @@ local __colors_mt = {
 }
 setmetatable(colors, __colors_mt)
 
-local Color = {}
+Color = {}
 local __current_index = 0
 local getIndexColorNumber = function()
     __current_index = __current_index + 1
@@ -92,30 +89,24 @@ local IndexColor = function(_, key)
 
     return nil
 end
-local color_object_to_string = function(self)
-    return string.format('[%s: (%s, %s, %s)]', self.name, self.H, self.S, self.L)
-end
+
 local color_arithmetic = function(operation)
     return function(left, right)
         return Color.__private_create(nil, unpack(modifiers[operation](left.H, left.S, left.L, right, 1)))
     end
 end
-local color_object_add = function(left, right)
-    return color_arithmetic('add')(left, right)
-end
-local color_object_sub = function(left, right)
-    return color_arithmetic('subtract')(left, right)
-end
 
-local __local_mt = {
+local __ColorMt = {
     __type__ = 'color',
     __metatable = {},
     __index = IndexColor,
-    __tostring = color_object_to_string,
+    __tostring = function(self)
+        return string.format('[%s: (%s, %s, %s)]', self.name, self.H, self.S, self.L)
+    end,
 
     -- FIXME: Determine what the basic arithmetic operators should do for colors...
-    __add = color_object_add,
-    __sub = color_object_sub,
+    __add = color_arithmetic('add'),
+    __sub = color_arithmetic('subtract'),
 }
 
 Color.__private_create = function(name, H, S, L, mods)
@@ -141,7 +132,7 @@ Color.__private_create = function(name, H, S, L, mods)
         --  When "self" is changed, we wait until these have been updated
         parent = {},
 
-    }, __local_mt)
+    }, __ColorMt)
 end
 
 Color.new = function(name, H, S, L, mods)
@@ -149,7 +140,7 @@ Color.new = function(name, H, S, L, mods)
     --  name
     --  H, S, L
     --  children: A table of all the colors that depend on this color
-    assert(__local_mt)
+    assert(__ColorMt)
 
     if H == nil then
         local obj =  {
@@ -163,14 +154,18 @@ Color.new = function(name, H, S, L, mods)
 
         return obj
     elseif type(H) == "string" and H:sub(1, 1) == "#" and H:len() == 7 then
+        log.debug("Generating HSL for: ", name, H)
+
         H, S, L = util.rgb_string_to_hsl(H)
+
+       log.debug("Result: ", H, S, L)
     end
 
     -- Get an existing color if possible, so that we can update any references to this color
     -- when you use something like 'Color.new('red', ...)' twice
     local object
     if is_existing_color(name) then
-        object = find_color(nil, name)
+        object = colors[name]
         object.H = H
         object.S = S
         object.L = L
@@ -328,6 +323,14 @@ local _clear_colors = function() color_hash = {} end
 
 
 Color.new('none')
+Color.new('gray0',     '#282c34')
+Color.new('gray1',     '#282a2e')
+Color.new('gray2',     '#373b41')
+Color.new('gray3',     '#969896')
+Color.new('gray4',     '#b4b7b4')
+Color.new('gray5',     '#c5c8c6')
+Color.new('gray6',     '#e0e0e0')
+Color.new('gray7',     '#ffffff')
 
 return {
     colors = colors,

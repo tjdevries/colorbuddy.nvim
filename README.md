@@ -4,7 +4,7 @@
 
 Live changing of colors (and inherited colors!)
 
-![changing_colors](./media/color_change.svg)
+![changing_colors](./example/demo/_simple.svg)
 
 ## Example
 
