@@ -23,6 +23,16 @@ local find_color = function(_, raw_key)
     if is_existing_color(key) then
         return color_hash[key]
     else
+        local nvim_color = vim.fn.nvim_get_color_by_name(key)
+        if nvim_color > 0 then
+            print('Setting key')
+            print(key)
+            print('#' .. bit.tohex(nvim_color, 6))
+            Color.new(key, '#' .. bit.tohex(nvim_color, 6))
+
+            return Color[key]
+        end
+
         return {}
     end
 end
@@ -133,6 +143,7 @@ Color.__private_create = function(name, H, S, L, mods)
 
     }, __local_mt)
 end
+
 Color.new = function(name, H, S, L, mods)
     -- Color:
     --  name
@@ -185,6 +196,7 @@ Color.new = function(name, H, S, L, mods)
 
     return object
 end
+
 Color.to_rgb = function(self, H, S, L)
     if self.name == 'none' then
         return 'none'
@@ -203,6 +215,7 @@ Color.to_rgb = function(self, H, S, L)
 
     return buffer
 end
+
 Color.modifier_result = function(self, ...)
     -- Accepts arguments of:
     --  string: The name of a modifier for a color
@@ -232,6 +245,7 @@ Color.modifier_result = function(self, ...)
 
     return hsl_table
 end
+
 Color.modifier_apply = function(self, ...)
     log.debug('Applying Modifier for:', self.name, ' / ', ...)
     local new_hsl = self:modifier_result(...)
@@ -253,10 +267,12 @@ Color.modifier_apply = function(self, ...)
 
     return updated
 end
+
 Color._add_child = function(self, child)
     self.children[child] = true
     child.parent = self
 end
+
 Color.new_child = function(self, name, ...)
     if self.children[string.lower(name)] ~= nil then
         print('ERROR: must not use same name')
@@ -276,6 +292,7 @@ Color.new_child = function(self, name, ...)
 
     return kid
 end
+
 Color.update = function(self, updated)
     -- TODO: We don't full handle loops right now, since we  don't pass updated to anywhere
     if updated == nil then

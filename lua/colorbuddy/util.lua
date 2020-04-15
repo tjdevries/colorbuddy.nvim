@@ -35,15 +35,13 @@ util.rgb_string_to_hsl = function(rgb)
     )
 end
 
------------------------------------------------------------------------------
--- Converts an RGB triplet to HSL.
+--- Converts an RGB triplet to HSL.
 -- (see http://easyrgb.com)
 --
 -- @param r              red (0.0-1.0)
 -- @param g              green (0.0-1.0)
 -- @param b              blue (0.0-1.0)
 -- @return               corresponding H, S and L components
------------------------------------------------------------------------------
 util.rgb_to_hsl = function(r, g, b)
     r = r or 0
     g = g or 0
@@ -80,15 +78,13 @@ util.rgb_to_hsl = function(r, g, b)
    return h * 360, s, l
 end
 
------------------------------------------------------------------------------
--- Converts an HSL triplet to RGB
+--- Converts an HSL triplet to RGB
 -- (see http://homepages.cwi.nl/~steven/css/hsl.html).
 --
 -- @param H              hue (0-360)
 -- @param S              saturation (0.0-1.0)
 -- @param L              lightness (0.0-1.0)
 -- @return               an R, G, and B component of RGB
------------------------------------------------------------------------------
 util.hsl_to_rgb = function(h, s, L)
     -- h = (h % 360) / 360
     h = (h / 360) % 1
@@ -122,6 +118,7 @@ util.hsl_to_rgb = function(h, s, L)
         util.clamp(hue_to_rgb(m1, m2, h), 0, 1),
         util.clamp(hue_to_rgb(m1, m2, h - 1/3), 0, 1)
 end
+
 util.hsl_to_rgb_string = function(H, S, L)
   local r, g, b = util.hsl_to_rgb(H, S, L)
 
@@ -131,12 +128,12 @@ util.hsl_to_rgb_string = function(H, S, L)
 
   return string.format('#%02x%02x%02x', r, g, b)
 end
+
 util.clamp = function(val, min, max)
   if val >= min and val <= max then return val end
   if val < min then return min end
   if val > max then return max end
 end
-
 
 util.key_concat = function(t, str)
     local key_table = {}
