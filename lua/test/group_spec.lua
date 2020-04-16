@@ -124,4 +124,18 @@ describe('Group object', function()
             helper.eq_float(groups.base2.bg.L, groups.mixed2.bg.L)
         end)
     end)
+
+    describe('Parent -> Child relationships', function()
+        it('should have children follow the parents changes', function()
+            Group.new('parentChanger', colors.yellow       , colors.gray0)
+            Group.new('childChanger' , groups.parentChanger, groups.parentChanger)
+
+            -- Change yellow -> red
+            Group.new('parentChanger', colors.red          , colors.gray0)
+
+            assert.are.same(colors.red            , groups.parentChanger.fg)
+            assert.are.same(colors.red            , groups.childChanger.fg)
+            assert.are.same(groups.childChanger.fg, groups.parentChanger.fg)
+        end)
+    end)
 end)

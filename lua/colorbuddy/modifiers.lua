@@ -53,6 +53,7 @@ modifiers.dark = function(H, S, L, amount)
 
     return {H, S, L - amount}
 end
+
 modifiers.light = function(H, S, L, amount)
     if amount == nil then
         amount = 0.1
@@ -60,17 +61,21 @@ modifiers.light = function(H, S, L, amount)
 
     return {H, S, L + amount}
 end
+
 modifiers.subtract = function(H, S, L, color_object, intensity)
     return operator_intensity('-')(H, S, L, color_object, intensity)
 end
+
 modifiers.add = function(H, S, L, color_object, intensity)
     return operator_intensity('+')(H, S, L, color_object, intensity)
 end
+
 modifiers.negative = function(H, S, L)
     local rgb = {util.hsl_to_rgb(H, S, L)}
 
     return {util.rgb_to_hsl(1 - rgb[1], 1 - rgb[2], 1 - rgb[3])}
 end
+
 modifiers.average = function(H, S, L, color_object)
     local r1, g1, b1, r2, g2, b2
 
@@ -105,10 +110,15 @@ modifiers.average = function(H, S, L, color_object)
     local g_average = ((g1^2 + g2^2) / 2)^(1/2) / 255
     local b_average = ((b1^2 + b2^2) / 2)^(1/2) / 255
 
+    -- local r_average = math.floor(((r1^2 + r2^2) / 2)^(1/2)) / 255
+    -- local g_average = math.floor(((g1^2 + g2^2) / 2)^(1/2)) / 255
+    -- local b_average = math.floor(((b1^2 + b2^2) / 2)^(1/2)) / 255
+
     return {util.rgb_to_hsl(r_average, g_average, b_average)}
 end
+
 modifiers.complement = function(H, S, L)
-    return { (180 + H) % 360, S, L }
+    return { (180.0 + H) % 360, S, L }
 end
 
 return {

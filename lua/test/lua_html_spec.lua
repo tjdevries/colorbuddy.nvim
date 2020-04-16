@@ -1,4 +1,7 @@
 
+if not vim then
+    return
+end
 
 local html = require('colorbuddy.lua_html.init')
 

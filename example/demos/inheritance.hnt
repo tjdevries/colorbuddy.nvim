@@ -1,0 +1,33 @@
+### Simple demo to show what can happen with inheritance
+
+## key_delay 10
+## feed_full
+
+### Setup
+:e! ./example/change_inheritance.lua\<CR>
+:silent! foldopen\<CR>
+:silent! set nohlsearch\<CR>
+:execute 'lua ' . getline(1)\<CR>
+
+:1\<CR>
+
+:4\<CR>
+V
+## pause
+\<ESC>
+:execute 'lua ' . getline('.')\<CR>
+
+:8\<CR>
+V
+## pause
+\<ESC>
+:execute 'lua ' . getline('.')\<CR>
+
+:14\<CR>
+V
+## pause
+\<ESC>
+:execute 'lua ' . getline('.')\<CR>
+
+## pause
+:qa!\<CR>

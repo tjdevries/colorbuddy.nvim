@@ -21,8 +21,8 @@ describe('hsl <-> rgb functions', function()
         local start = {util.rgb_string_to_hsl('#0000ff')}
         assert.are.same('#0000ff', util.hsl_to_rgb_string(unpack(start)))
     end)
-    it('should convert between hsl and rgb with 360', function()
-        local start = {360, 0, 0.5}
+    it('should convert between hsl and rgb with 0/360', function()
+        local start = {0, 0.5, 0.5}
         assert.are.same(start, {util.rgb_to_hsl(util.hsl_to_rgb(unpack(start)))})
     end)
 end)

@@ -47,7 +47,6 @@ util.rgb_to_hsl = function(r, g, b)
     g = g or 0
     b = b or 0
 
-   --r, g, b = r/255, g/255, b/255
    local min = math.max(math.min(r, g, b), 0)
    local max = math.min(math.max(r, g, b), 1)
    local delta = max - min
@@ -55,7 +54,9 @@ util.rgb_to_hsl = function(r, g, b)
    local h, s, l = 0, 0, ((min + max) / 2)
 
    -- Achromatic, can skip the rest
-   if max == min then return max * 359, 0, l end
+   if max == min then
+     return max * 359, 0, l
+   end
 
    if l < 0.5 then s = delta / (max + min) end
    if l >= 0.5 then s = delta / (2 - max - min) end
@@ -75,13 +76,14 @@ util.rgb_to_hsl = function(r, g, b)
    if h < 0 then h = h + 1 end
    if h > 1 then h = h - 1 end
 
+   -- return math.floor(h * 360), s, l
    return h * 360, s, l
 end
 
 --- Converts an HSL triplet to RGB
 -- (see http://homepages.cwi.nl/~steven/css/hsl.html).
 --
--- @param H              hue (0-360)
+-- @param H              hue (0-359)
 -- @param S              saturation (0.0-1.0)
 -- @param L              lightness (0.0-1.0)
 -- @return               an R, G, and B component of RGB

@@ -6,6 +6,9 @@ local modifiers = require('colorbuddy.modifiers').modifiers
 
 local helper = require('test.helper')
 
+local log = require('colorbuddy.log')
+-- log.level = log.level_enum.debug
+
 describe('Color class', function()
     before_each(helper.clear)
 

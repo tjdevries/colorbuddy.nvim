@@ -6,6 +6,10 @@ Live changing of colors (and inherited colors!)
 
 ![changing_colors](./example/demos/_simple.svg)
 
+Inheritance
+
+![inheritance](./example/demos/_inheritance.svg)
+
 ## Example
 
 Your color buddy for making cool neovim color schemes. Write your colorscheme in lua!

@@ -140,7 +140,7 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
 
     -- Return the property of the group object
     if is_group_object(val) then
-        return val[property]
+        return val[property], val
     end
 
     -- Return the result of a mixed value
@@ -168,6 +168,7 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
     print(debug.traceback())
     error(err_string .. ': ' .. val_repr)
 end
+
 Group.__tostring = function(self)
     if self == nil then
         return ''
@@ -198,20 +199,18 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
 
     local handler = {}
 
-    local fg_color = Group.handle_group_argument(
+    local fg_color, fg_parent = Group.handle_group_argument(
         handler, fg, 'fg', is_color_object,
         'Not a valid foreground color'
     )
-    local bg_color = Group.handle_group_argument(
+    local bg_color, bg_parent = Group.handle_group_argument(
         handler, bg, 'bg', is_color_object,
         'Not a valid background color'
     )
-    local style_style = Group.handle_group_argument(
+    local style_style, style_parent = Group.handle_group_argument(
         handler, style, 'style', is_style_object,
         'Not a valid style'
     )
-
-    local already_exists = Group.is_existing_group(name)
 
     if not is_color_object(fg_color) then
         error('Bad foreground color: ' .. debug.traceback())
@@ -222,7 +221,7 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
     end
 
     local obj
-    if already_exists then
+    if Group.is_existing_group(name) then
         obj = find_group(nil, name)
 
         -- Only apply the updates if it isn't a default
@@ -233,10 +232,13 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
         obj.fg = fg_color
         obj.bg = bg_color
         obj.style = style_style
+
+        obj:update()
     else
         obj = setmetatable({
             -- Define "colorbuddy" type of "group"
             __type__ = 'group',
+
             -- It should not be set to a "default" highlight unless set by Group.default
             __default__ = default or false,
             __bang__ = bang or false,
@@ -246,7 +248,13 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
             bg = bg_color,
             style = style_style,
 
-            children = {},
+            children = {
+                fg = {},
+                bg = {},
+                style = {},
+            },
+
+            -- TODO: Should there be fg, bg, style?
             parents = {},
         }, __local_mt)
 
@@ -257,19 +265,36 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
     obj.fg:_add_child(obj)
     obj.bg:_add_child(obj)
 
+    if fg_parent then
+        -- table.insert(fg_parent.children, obj)
+        fg_parent.children.fg[obj] = true
+    end
+
+    if bg_parent then
+        -- table.insert(bg_parent.children, obj)
+        bg_parent.children.bg[obj] = true
+    end
+
+    if style_parent then
+        -- table.insert(style_parent.children, obj)
+        style_parent.children.style[obj] = true
+    end
 
     -- Send Neovim our updated group
     Group.apply(obj)
 
     return obj
 end
+
 Group.default = function(name, fg, bg, style, bang)
     return Group.__private_create(name, fg, bg, style, true, bang)
 end
+
 Group.new = function(name, fg, bg, style)
     return Group.__private_create(name, fg, bg, style, false, false)
 end
-Group.apply = function(self)
+
+function Group:apply()
     -- Only clear old highlighting if we're not the default
     if self.__default__ == false then
         -- Clear the current highlighting
@@ -290,7 +315,10 @@ Group.apply = function(self)
         )
     )
 end
+
 Group.update = function(self, updated)
+    log.debug("Group Updating...", self.name)
+
     -- The hash map we'll be using to track the updates already completed
     if updated == nil then
         updated = {}
@@ -302,19 +330,32 @@ Group.update = function(self, updated)
     end
 
     -- FIXME: Should make sure that all my dependencies have been updated first.
+    --          Would have to have some pretty weird depdencies for that to happen though.
 
     -- Let neovim know that we've updated
     self:apply()
     updated[self] = true
 
     -- FIXME: Should alert any depdencies of me that they need to update
-    for child, _ in pairs(self.children) do
+    local children_to_update = {}
+    for _, property in ipairs({"fg", "bg", "style"}) do
+        for child, _ in pairs(self.children[property]) do
+            -- Update the child's property
+            child[property] = self[property]
+
+            -- Track the children that we're going to update
+            children_to_update[child] = true
+        end
+    end
+
+    for child, _ in pairs(children_to_update) do
         if child.update ~= nil then
             child:update(updated)
         else
             log.warn('No update method found for:', child)
         end
     end
+
 end
 
 local _clear_groups = function() group_hash = {} end

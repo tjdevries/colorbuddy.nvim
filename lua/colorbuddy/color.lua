@@ -26,38 +26,54 @@ local find_color = function(_, raw_key)
     if is_existing_color(key) then
         return color_hash[key]
     else
-        local nvim_color = vim.fn.nvim_get_color_by_name(key)
-        if nvim_color > 0 then
-            return Color.new(key, '#' .. bit.tohex(nvim_color, 6))
+        if vim then
+            local nvim_color = vim.fn.nvim_get_color_by_name(key)
+            if nvim_color > 0 then
+                return Color.new(key, '#' .. bit.tohex(nvim_color, 6))
+            end
         end
 
         return {}
     end
 end
 
-local next_color = function(_)
-    local stateless_iterator = function(_, k)
-        local v
 
+local colors = {}
+-- colors.__index = colors
+
+local next_color = function(tbl)
+    local stateless_iterator = function(tbl, k)
+        local v
         k, v = next(color_hash, k)
 
         if k == 'none' then
             k, v = next(color_hash, k)
         end
 
-        if v then return k, v end
+        while k and string.find(k, '__') == 1 do
+            k, v = next(color_hash, k)
+        end
+
+        if v ~= nil then
+            return k, v
+        end
     end
 
-    return stateless_iterator, color_hash, nil
+    return stateless_iterator, tbl, nil
 end
 
-local colors = {}
 local __colors_mt = {
-    __metatable = {},
     __index = find_color,
     __pairs = next_color,
+    -- __pairs = function(tbl)
+    --     assert(false)
+    -- end,
+
+    -- __ipairs = function(tbl)
+    --     assert(false)
+    -- end
 }
-setmetatable(colors, __colors_mt)
+colors = setmetatable(colors, __colors_mt)
 
 Color = {}
 local __current_index = 0
@@ -205,7 +221,14 @@ Color.to_rgb = function(self, H, S, L)
     local buffer = "#"
 
     for _, v in ipairs(rgb) do
-        buffer = buffer .. string.format("%02x", math.floor(v * 256 + 0.1))
+        buffer = buffer .. string.format(
+            "%02x",
+            util.clamp(
+                -- Don't let the number be greater than 255 or less than 0
+                -- 0-255 is the valid range
+                math.floor(v * 256 + 0.001), 0, 255
+            )
+        )
     end
 
     return buffer
@@ -243,6 +266,7 @@ end
 
 Color.modifier_apply = function(self, ...)
     log.debug('Applying Modifier for:', self.name, ' / ', ...)
+
     local new_hsl = self:modifier_result(...)
     self.H, self.S, self.L = unpack(new_hsl)
 

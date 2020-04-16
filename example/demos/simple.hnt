@@ -9,7 +9,7 @@
 :silent! foldopen\<CR>
 :silent! set foldmethod=manaul\<CR>
 
-:execute 'lua' . getline(1)\<CR>
+:execute 'lua ' . getline(1)\<CR>
 
 ## key_delay 80
 
