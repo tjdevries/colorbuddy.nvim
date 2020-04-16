@@ -23,11 +23,14 @@ local M = {
 M.setup = function()
     Color = M.Color
     c = M.colors
+    colors = M.colors
 
     Group = M.Group
     g = M.groups
+    groups = M.groups
 
     s = M.styles
+    styles = M.styles
 
     return Color, c, Group, g, s
 end

@@ -1,17 +1,14 @@
 local log = require('colorbuddy.log')
 
 -- luacheck: globals vim
-local vim = vim or {}
+vim = vim or {}
 
--- TODO: Make this into a cool metamethod index to just print what I want to call
-local nvim = vim.api or {
-    nvim_call_function = function(...)
-        log.debug('[NVIM.call_function]', ...)
-    end,
-
-    nvim_command = function(...)
-        log.debug('[NVIM.command]', ...)
-    end,
-}
+nvim = vim.api or setmetatable({}, {
+    __index = function(_, key)
+        return function(...)
+            log.debug(string.format('[nvim.%s]', key), ...)
+        end
+    end
+})
 
 return nvim

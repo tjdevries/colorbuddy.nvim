@@ -17,30 +17,34 @@ Your color buddy for making cool neovim color schemes. Write your colorscheme in
 Example:
 
 ```lua
-local Color = require('colorbuddy.init').Color
-local colors = require('colorbuddy.init').colors
+local Color, colors, Group, groups, styles = require('colorbuddy').setup()
 
-local Group = require('colorbuddy.init').Group
-local groups = require('colorbuddy.init').groups
+-- Use Color.new(<name>, <#rrggbb>) to create new colors
+-- They can be accessed through colors.<name>
+Color.new('background',  '#282c34')
+Color.new('red',         '#cc6666')
+Color.new('green',       '#99cc99')
+Color.new('yellow',      '#f0c674')
 
-local styles = require('colorbuddy.init').styles
+-- Define highlights in terms of `colors` and `groups`
+Group.new('Function'        , colors.yellow      , colors.background , styles.bold)
+Group.new('luaFunctionCall' , groups.Function    , groups.Function   , groups.Function)
 
-Color.new('red', '#cc6666')
-Color.new('green', '#99cc99')
-Color.new('yellow', '#f0c674')
-Color.new('background', '#1d1f21')
-
-Group.new('Function', colors.yellow, colors.background, styles.bold)
-Group.new('mFunction', groups.Function, groups.Function, groups.Function)
-
--- If you want multiple styles, just add them!
-Group.new('italicBoldFunction', groups.Function, colors.background, styles.bold + styles.italic)
-
--- If you want the same style as a different group, but without a style
--- just subtract it!
-Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFunction - styles.italic)
+-- Define highlights in relative terms of other colors
+Group.new('Error'           , colors.red:light() , nil               , s.bold)
 ```
 
-## TODO:
-- [ ] Highlight links
-- [ ] Highlight defaults
+
+### Advanced Examples
+
+```lua
+-- Optionally, you can just use the globals created when calling `setup()`
+-- No need to declare new locals
+require('colorbuddy').setup()
+
+-- If you want multiple styles, just add them!
+Group.new('italicBoldFunction', colors.green, groups.Function, styles.bold + styles.italic)
+
+-- If you want the same style as a different group, but without a style: just subtract it!
+Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFunction - styles.italic)
+```
