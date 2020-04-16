@@ -14,6 +14,8 @@ Inheritance
 
 Your color buddy for making cool neovim color schemes. Write your colorscheme in lua!
 
+You can see one example for gruvbox-esque styles [here](https://github.com/tjdevries/gruvbuddy.nvim).
+
 Example:
 
 ```lua

@@ -20,7 +20,7 @@ local M = {
 
 --- Exports globals so you can use them in a script.
 --- Optionally returns them if you'd prefer to use them that way.
-M.setup = function()
+function M.setup()
     Color = M.Color
     c = M.colors
     colors = M.colors
@@ -33,6 +33,21 @@ M.setup = function()
     styles = M.styles
 
     return Color, c, Group, g, s
+end
+
+function M.colorscheme(name, light)
+    local bg
+    if light then
+        bg = 'light'
+    else
+        bg =  'dark'
+    end
+
+    vim.api.nvim_command('set termguicolors')
+    vim.api.nvim_command(string.format('let g:colors_name = "%s"', name))
+    vim.api.nvim_command(string.format('set background=%s', bg))
+
+    require(name)
 end
 
 return M
