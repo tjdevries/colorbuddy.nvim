@@ -58,9 +58,9 @@ Group.new('WhiteSpace', c.purple)
 --2 Searching
 Group.new('Search', c.gray1, c.yellow)
 --2 Tabline
-Group.new('TabLine', c.gray7:light(), c.gray1)
-Group.new('TabLineFill', c.softwhite, c.gray3)
-Group.new('TabLineSel', c.white:light(), c.gray1, s.bold)
+Group.new('TabLine', c.blue:dark(), c.gray1, s.none)
+Group.new('TabLineFill', c.softwhite, c.gray3, s.none)
+Group.new('TabLineSel', c.gray7:light(), c.gray1, s.bold)
 --2 Sign Column
 --1 Standard syntax
 Group.new('Boolean', c.orange)
