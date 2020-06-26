@@ -104,15 +104,18 @@ Group.new('vimAutoloadFunction', g.Function.fg:dark():dark(), g.Function, g.Func
 --2 MatchParen
 Group.new('MatchParen', c.cyan)
 
+local path_sep = vim.fn.has('win32') ~= 0 and '\\' or '/'
+
 -- Load the rest of the plugins
 local function script_path()
    local str = debug.getinfo(2, "S").source:sub(2)
-   return str:match("(.*/)")
+   return vim.fn.fnamemodify(str, ":h") .. path_sep
 end
 
 local other_plugins = vim.fn.glob(script_path() .. "*.lua", '', true)
 for _, v in ipairs(other_plugins) do
-   local complete_path = vim.fn.fnamemodify(v, ":p")
+   local complete_path = vim.fn.substitute(vim.fn.fnamemodify(v, ":p"), '\\', '/', 'g')
+
    local path_starts = string.find(complete_path, "colorbuddy/plugins", nil, true)
    local relevant_path = string.sub(v, path_starts)
 
@@ -121,7 +124,7 @@ for _, v in ipairs(other_plugins) do
    individual_requirement = string.gsub(individual_requirement, "/", ".")
 
    if not string.find(individual_requirement, "init") then
-      log.debug("Requiring: ", individual_requirement)
+      log.debug("Colorbuddy.vim::Requiring: ", individual_requirement)
       require(individual_requirement)
    end
 end
