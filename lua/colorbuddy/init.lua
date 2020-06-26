@@ -2,6 +2,17 @@
 -- @author: TJ DeVries
 -- Inspired HEAVILY by @tweekmonster's colorpal.vim
 
+vim.fn = vim.fn or setmetatable({}, {
+  __index = function(t, key)
+    local function _fn(...)
+      return vim.api.nvim_call_function(key, {...})
+    end
+    t[key] = _fn
+    return _fn
+  end
+})
+
+
 
 local groups = require('colorbuddy.group').groups
 local colors = require('colorbuddy.color').colors

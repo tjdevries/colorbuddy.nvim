@@ -27,7 +27,7 @@ local find_color = function(_, raw_key)
         return color_hash[key]
     else
         if vim then
-            local nvim_color = vim.fn.nvim_get_color_by_name(key)
+            local nvim_color = vim.api.nvim_get_color_by_name(key)
             if nvim_color > 0 then
                 return Color.new(key, '#' .. bit.tohex(nvim_color, 6))
             end
