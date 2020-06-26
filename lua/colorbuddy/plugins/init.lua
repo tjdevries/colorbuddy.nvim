@@ -53,7 +53,7 @@ Group.new('VisualLineMode', g.Visual, g.Visual)
 --2 Special Characters
 Group.new('Special', c.purple:light(), nil, s.bold)
 Group.new('SpecialChar', c.brown)
-Group.new('NonText', c.gray2, nil, s.italic)
+Group.new('NonText', c.gray2:light(), nil, s.italic)
 Group.new('WhiteSpace', c.purple)
 --2 Searching
 Group.new('Search', c.gray1, c.yellow)

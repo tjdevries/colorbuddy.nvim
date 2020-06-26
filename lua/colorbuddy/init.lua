@@ -6,7 +6,7 @@
 local groups = require('colorbuddy.group').groups
 local colors = require('colorbuddy.color').colors
 
-if vim and not vim.g.colorbuddy_disable_auto_import then
+if vim then
     require('colorbuddy.plugins')
 end
 
