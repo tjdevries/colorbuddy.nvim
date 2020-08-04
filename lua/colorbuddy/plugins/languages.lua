@@ -52,3 +52,5 @@ Group.new('SqlKeyword', c.red)
 -- HTML Syntax {{{
 Group.new('htmlH1', c.blue:dark(), nil, s.bold)
 -- }}}
+-- Rust Syntax {{
+-- }}}

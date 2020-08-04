@@ -15,10 +15,13 @@ Group.set_default('fg', c.none)
 Group.set_default('bg', c.background)
 Group.set_default('style', s.none)
 
+Color.new('superwhite', '#E0E0E0')
 Color.new('softwhite', '#ebdbb2')
+Color.new('teal', '#018080')
 
 --1 Vim Editor
-Group.new('Normal', c.gray5, c.gray0)
+Group.new('Normal', c.superwhite, c.gray0)
+Group.new('InvNormal', c.gray0, c.gray5)
 Group.new('LineNr', c.gray3, c.gray1)
 Group.new('EndOfBuffer', c.gray3)
 
@@ -45,6 +48,7 @@ Group.new('InsertMode', c.gray7, c.yellow, s.bold)
 Group.new('ReplaceMode', c.gray7, c.yellow, s.bold + s.underline)
 Group.new('TerminalMode', c.gray7, c.turquoise, s.bold)
 Group.new('HelpDoc', c.gray7, c.turquoise, s.bold + s.italic)
+Group.new('HelpIgnore', c.green, nil, s.bold + s.italic)
 
 Group.new('Visual', nil, c.blue:dark(.3))
 Group.new('VisualMode', g.Visual, g.Visual)
@@ -55,6 +59,7 @@ Group.new('Special', c.purple:light(), nil, s.bold)
 Group.new('SpecialChar', c.brown)
 Group.new('NonText', c.gray2:light(), nil, s.italic)
 Group.new('WhiteSpace', c.purple)
+Group.new('Conceal', g.Normal.bg, c.gray2:light(), s.italic)
 --2 Searching
 Group.new('Search', c.gray1, c.yellow)
 --2 Tabline
