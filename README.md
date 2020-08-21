@@ -50,3 +50,9 @@ Group.new('italicBoldFunction', colors.green, groups.Function, styles.bold + sty
 -- If you want the same style as a different group, but without a style: just subtract it!
 Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFunction - styles.italic)
 ```
+
+## Made with Colorbuddy
+
+Made by haoren: https://github.com/haorenW1025/config/blob/master/.config/nvim/lua/color.lua
+
+![haoren](./example/haoren_nord_scheme.png)
