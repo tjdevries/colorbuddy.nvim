@@ -1,12 +1,23 @@
 local c = require('colorbuddy.color').colors
+local Color = require('colorbuddy.color').Color
+
+local g = require('colorbuddy.group').groups
 local Group = require('colorbuddy.group').Group
+
+Color.new('GreenBg', '#002800' )
+-- Color.new('GreenChange', '#006000')
+
+Color.new('RedBg', '#3f0001')
+Color.new('Black', '#000000')
 
 Group.new('gitDiff', c.gray6:dark())
 
-Group.new('DiffChange', nil, c.gray7 - c.red)
-Group.new('DiffText', nil, c.red)
-Group.new('DiffDelete', c.gray3, c.gray0)
-Group.new('DiffAdded', c.green:dark())
+Group.new('DiffChange', nil, c.GreenBg)
+Group.new('DiffText', nil, g.DiffChange.bg:light():light())
+Group.new('DiffAdd', nil, g.DiffChange.bg)
+Group.new('DiffDelete', nil, c.black)
+
+-- What are these?
 Group.new('DiffRemoved', c.violet)
 
 -- TODO: Gotta fix these probably as well.
@@ -15,3 +26,24 @@ Group.new('DiffRemoved', c.violet)
 Group.new('SignifySignAdd', c.green, nil)
 Group.new('SignifySignChange', c.yellow, nil)
 Group.new('SignifySignDelete', c.red, nil)
+
+--[[
+This is from the very helpful @recursivechat
+Goto above to see who this is from.
+
+hi String ctermbg=0 ctermfg=10 cterm=NONE guibg=#36353d guifg=#7d8a6b gui=NONE
+hi Normal ctermbg=0 ctermfg=15 cterm=NONE guibg=#36353d guifg=#a4a4a7 gui=NONE
+hi ErrorMsg ctermbg=0 ctermfg=9 cterm=NONE guibg=#36353d guifg=#8e5256 gui=NONE
+hi Identifier ctermbg=0 ctermfg=6 cterm=NONE guibg=#36353d guifg=#6c8b94 gui=NONE
+
+hi DiffAdd ctermbg=2 guibg=#414839
+hi DiffChange ctermbg=2 guibg=#414839
+
+hi! link diffAdded String
+hi! link diffSubname Normal
+
+hi! link DiffDelete ErrorMsg
+
+hi! link DiffText Normal
+hi! link diffLine Identifier
+--]]
