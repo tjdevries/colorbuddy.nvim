@@ -53,6 +53,8 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 
 ## Made with Colorbuddy
 
-Made by haoren: https://github.com/haorenW1025/config/blob/master/.config/nvim/lua/color.lua
+- [Haoren-Nordic](https://github.com/haorenW1025/config/blob/master/.config/nvim/lua/color.lua)
 
 ![haoren](./example/haoren_nord_scheme.png)
+
+- [Modus-Themes](https://github.com/ishan9299/modus-theme-vim)
