@@ -93,10 +93,9 @@ Group.new('String', c.green)
 Group.new('Structure', c.violet)
 Group.new('Tag', c.yellow)
 Group.new('Todo', c.yellow)
-Group.new('Type', c.yellow)
 Group.new('Typedef', c.yellow)
 
-Group.new('Type', c.yellow:dark(), nil, s.bold)
+Group.new('Type', c.violet, nil, s.italic)
 --2 Folded Items
 Group.new('Folded', c.gray3:dark(), c.gray2:light())
 --2 Function
