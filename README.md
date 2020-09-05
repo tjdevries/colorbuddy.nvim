@@ -1,14 +1,20 @@
-# colorbuddy.vim
+# colorbuddy.nvim
+
+A colorscheme helper for Neovim.
+
+Written in Lua! Quick & Easy Color Schemes :smile:
+
+Sincerely, your color buddy.
 
 ## Benefits
 
 Live changing of colors (and inherited colors!)
 
-![changing_colors](./example/demos/_simple.svg)
+![changing_colors](https://raw.githubusercontent.com/tjdevries/media.repo/3c0eedb38a51e45d2455fc167535de1fd0cfc99d/colorbuddy.nvim/_simple.svg)
 
 Inheritance
 
-![inheritance](./example/demos/_inheritance.svg)
+![inheritance](https://raw.githubusercontent.com/tjdevries/media.repo/3c0eedb38a51e45d2455fc167535de1fd0cfc99d/colorbuddy.nvim/_inheritance.svg)
 
 ## Example
 
@@ -53,8 +59,10 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 
 ## Made with Colorbuddy
 
+- [Gruvbuddy](https://github.com/tjdevries/gruvbuddy.nvim) (Made by me!)
+
 - [Haoren-Nordic](https://github.com/haorenW1025/config/blob/master/.config/nvim/lua/color.lua)
 
-![haoren](./example/haoren_nord_scheme.png)
+![haoren](https://raw.githubusercontent.com/tjdevries/media.repo/master/colorbuddy.nvim/haoren_nord_scheme.png)
 
 - [Modus-Themes](https://github.com/ishan9299/modus-theme-vim)
