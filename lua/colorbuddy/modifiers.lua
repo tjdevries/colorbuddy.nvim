@@ -62,6 +62,14 @@ modifiers.light = function(H, S, L, amount)
     return {H, S, L + amount}
 end
 
+modifiers.saturate = function(H, S, L, amount)
+    if amount == nil then
+      amount = 0.1
+    end
+
+    return {H, S + amount, L}
+end
+
 modifiers.subtract = function(H, S, L, color_object, intensity)
     return operator_intensity('-')(H, S, L, color_object, intensity)
 end

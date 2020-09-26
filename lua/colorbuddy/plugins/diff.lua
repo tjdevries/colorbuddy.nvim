@@ -17,8 +17,9 @@ Group.new('DiffText', nil, g.DiffChange.bg:light():light())
 Group.new('DiffAdd', nil, g.DiffChange.bg)
 Group.new('DiffDelete', nil, c.black)
 
--- What are these?
-Group.new('DiffRemoved', c.violet)
+-- commitia highlights
+Group.new('DiffRemoved', c.red)
+Group.new('DiffAdded', c.green, nil)
 
 -- TODO: Gotta fix these probably as well.
 -- Group.new('SignifyLineAdd', c.green, nil)
