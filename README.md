@@ -66,3 +66,5 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 ![haoren](https://raw.githubusercontent.com/tjdevries/media.repo/master/colorbuddy.nvim/haoren_nord_scheme.png)
 
 - [Modus-Themes](https://github.com/ishan9299/modus-theme-vim)
+
+- [Space-Nvim-Theme](https://github.com/Th3Whit3Wolf/space-nvim-theme)
