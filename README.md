@@ -67,4 +67,4 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 
 - [Modus-Themes](https://github.com/ishan9299/modus-theme-vim)
 
-- [Space-Nvim-Theme](https://github.com/Th3Whit3Wolf/space-nvim-theme)
+- [Spacebuddy](https://github.com/Th3Whit3Wolf/spacebuddy)
