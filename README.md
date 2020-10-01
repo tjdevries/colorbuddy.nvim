@@ -1,6 +1,6 @@
 # colorbuddy.nvim
 
-A colorscheme helper for Neovim.
+A color scheme helper for Neovim.
 
 Written in Lua! Quick & Easy Color Schemes :smile:
 
@@ -18,7 +18,7 @@ Inheritance
 
 ## Example
 
-Your color buddy for making cool neovim color schemes. Write your colorscheme in lua!
+Your color buddy for making cool neovim color schemes. Write your color scheme in lua!
 
 You can see one example for gruvbox-esque styles [here](https://github.com/tjdevries/gruvbuddy.nvim).
 
