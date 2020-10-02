@@ -12,7 +12,7 @@ local background_string = '#282c34'
 Color.new('background', background_string)
 
 Group.set_default('fg', c.none)
-Group.set_default('bg', c.background)
+Group.set_default('bg', c.none)
 Group.set_default('style', s.none)
 
 Color.new('superwhite', '#E0E0E0')
@@ -22,6 +22,8 @@ Color.new('teal', '#018080')
 --1 Vim Editor
 Group.new('Normal', c.superwhite, c.gray0)
 Group.new('InvNormal', c.gray0, c.gray5)
+Group.new('NormalFloat', g.normal.fg:light(), g.normal.bg:dark())
+
 Group.new('LineNr', c.gray3, c.gray1)
 Group.new('EndOfBuffer', c.gray3)
 
