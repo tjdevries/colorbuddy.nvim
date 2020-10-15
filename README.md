@@ -68,3 +68,5 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 - [Modus-Themes](https://github.com/ishan9299/modus-theme-vim)
 
 - [Spacebuddy](https://github.com/Th3Whit3Wolf/spacebuddy)
+
+- [Onebuddy](https://github.com/Th3Whit3Wolf/onebuddy)
