@@ -57,6 +57,12 @@ Group.new('italicBoldFunction', colors.green, groups.Function, styles.bold + sty
 Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFunction - styles.italic)
 ```
 
+### Development
+
+To test colorbuddy, you'll need plenary.nvim
+
+(TODO more documentation)
+
 ## Made with Colorbuddy
 
 - [Gruvbuddy](https://github.com/tjdevries/gruvbuddy.nvim) (Made by me!)

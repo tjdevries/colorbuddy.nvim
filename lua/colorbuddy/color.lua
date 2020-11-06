@@ -62,17 +62,7 @@ local next_color = function(tbl)
     return stateless_iterator, tbl, nil
 end
 
-local __colors_mt = {
-    __index = find_color,
-    __pairs = next_color,
-    -- __pairs = function(tbl)
-    --     assert(false)
-    -- end,
-
-    -- __ipairs = function(tbl)
-    --     assert(false)
-    -- end
-}
+local __colors_mt = { __index = find_color, }
 colors = setmetatable(colors, __colors_mt)
 
 Color = {}
@@ -223,11 +213,11 @@ Color.to_rgb = function(self, H, S, L)
     for _, v in ipairs(rgb) do
         buffer = buffer .. string.format(
             "%02x",
-            util.clamp(
+            math.floor(util.clamp(
                 -- Don't let the number be greater than 255 or less than 0
                 -- 0-255 is the valid range
-                math.floor(v * 256 + 0.001), 0, 255
-            )
+                v * 256, 0, 255
+            ))
         )
     end
 
@@ -361,4 +351,5 @@ return {
     Color = Color,
     is_color_object = is_color_object,
     _clear_colors = _clear_colors,
+    _next_color = next_color,
 }
