@@ -101,7 +101,7 @@ Group.new('Type', c.violet, nil, s.italic)
 --2 Folded Items
 Group.new('Folded', c.gray3:dark(), c.gray2:light())
 --2 Function
-Group.new('Function', c.yellow, c.background, s.bold)
+Group.new('Function', c.yellow, nil, s.bold)
 Group.new('pythonBuiltinFunc', g.Function, g.Function, g.Function)
 Group.new('vimFunction', g.Function, g.Function, g.Function)
 -- TODO: Change to be able to just do g.Function:dark():dark()
