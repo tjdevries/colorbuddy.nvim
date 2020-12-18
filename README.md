@@ -70,3 +70,5 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 - [Spacebuddy](https://github.com/Th3Whit3Wolf/spacebuddy)
 
 - [Onebuddy](https://github.com/Th3Whit3Wolf/onebuddy)
+
+- [Nordbuddy](https://github.com/maaslalani/nordbuddy)
