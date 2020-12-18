@@ -12,14 +12,13 @@ vim.fn = vim.fn or setmetatable({}, {
   end
 })
 
-
-
 local groups = require('colorbuddy.group').groups
 local colors = require('colorbuddy.color').colors
 
-if vim then
-    require('colorbuddy.plugins')
-end
+-- BREAKING require colorbuddy.plugins if you want to use them
+-- if vim then
+--     require('colorbuddy.plugins')
+-- end
 
 local M = {
     groups = groups,
