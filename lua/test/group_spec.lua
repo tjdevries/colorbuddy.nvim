@@ -1,3 +1,4 @@
+require('plenary.test_harness'):setup_busted()
 
 local Group = require('colorbuddy.group').Group
 local groups = require('colorbuddy.group').groups

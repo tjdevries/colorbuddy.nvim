@@ -1,3 +1,4 @@
+require('plenary.test_harness'):setup_busted()
 
 local modifiers = require('colorbuddy.modifiers').modifiers
 local util = require('colorbuddy.util')
@@ -28,17 +29,26 @@ describe('modifiers', function()
 
     it('should know how to do negatives', function()
         local obj1 = {util.rgb_string_to_hsl('#808080')}
-        assert.are.same('#7f7f7f', util.hsl_to_rgb_string(unpack(modifiers.negative(unpack(obj1)))))
+        assert.are.same(
+          '#7f7f7f',
+          util.hsl_to_rgb_string(unpack(modifiers.negative(unpack(obj1))))
+        )
 
         local obj2 = {util.rgb_string_to_hsl('#000000')}
-        assert.are.same('#ffffff', util.hsl_to_rgb_string(unpack(modifiers.negative(unpack(obj2)))))
+        assert.are.same(
+          '#ffffff',
+          util.hsl_to_rgb_string(unpack(modifiers.negative(unpack(obj2))))
+        )
 
         local obj3 = {util.rgb_string_to_hsl('#ffffff')}
-        assert.are.same('#000000', util.hsl_to_rgb_string(unpack(modifiers.negative(unpack(obj3)))))
+        assert.are.same(
+          '#000000',
+          util.hsl_to_rgb_string(unpack(modifiers.negative(unpack(obj3))))
+        )
     end)
 
     -- Pending: Some dumb float drift that I don't want to deal w/ right now.
-    pending('should do complements to nice colors', function()
+    it('should do complements to nice colors', function()
         local original_string = '#325abd'
         assert.are.same(
             original_string,

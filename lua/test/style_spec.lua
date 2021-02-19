@@ -1,3 +1,4 @@
+require('plenary.test_harness'):setup_busted()
 
 local styles = require('colorbuddy.style').styles
 

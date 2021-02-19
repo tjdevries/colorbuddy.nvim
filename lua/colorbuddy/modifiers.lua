@@ -34,8 +34,8 @@ local operator_intensity = function(operand)
       end
 
       log.debug(
-      'subt:', original[i], mixin[i],
-      'res', result_rgb[i]
+        'subt:', original[i], mixin[i],
+        'res', result_rgb[i]
       )
     end
 
