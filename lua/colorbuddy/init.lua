@@ -17,9 +17,9 @@ vim.fn = vim.fn or setmetatable({}, {
 local groups = require('colorbuddy.group').groups
 local colors = require('colorbuddy.color').colors
 
-if vim then
-    require('colorbuddy.plugins')
-end
+-- if vim then
+--     require('colorbuddy.plugins')
+-- end
 
 local M = {
     groups = groups,
@@ -31,7 +31,9 @@ local M = {
 
 --- Exports globals so you can use them in a script.
 --- Optionally returns them if you'd prefer to use them that way.
-function M.setup()
+function M.setup(settings)
+    if vim and settings ~= nil and settings.override ~= true then require('colorbuddy.plugins') end
+
     Color = M.Color
     c = M.colors
     colors = M.colors
