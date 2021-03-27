@@ -304,16 +304,18 @@ function Group:apply()
     end
 
     -- Apply the new highlighting
-    nvim.nvim_command(
-        string.format('highlight%s %s %s guifg=%s guibg=%s gui=%s'
-            , execute.fif(self.__bang__, '!', '')
-            , execute.fif(self.__default__, 'default', '')
-            , self.name
-            , self.fg:to_rgb()
-            , self.bg:to_rgb()
-            , self.style:to_nvim()
-        )
-    )
+    nvim.nvim_command(self:highlight())
+end
+
+function Group:highlight() 
+  return string.format('highlight%s %s %s guifg=%s guibg=%s gui=%s'
+    , execute.fif(self.__bang__, '!', '')
+    , execute.fif(self.__default__, 'default', '')
+    , self.name
+    , self.fg:to_rgb()
+    , self.bg:to_rgb()
+    , self.style:to_nvim()
+  )
 end
 
 Group.update = function(self, updated)
@@ -355,7 +357,54 @@ Group.update = function(self, updated)
             log.warn('No update method found for:', child)
         end
     end
+end
 
+-- Generate a list of vim highlight commands
+-- @param colors table List of Group metatables
+local generate_vim_highlights = function(colors)
+  local highlights = {}
+
+  print(vim.inspect(colors))
+
+  for name, color in pairs(colors) do 
+    print(name, vim.inspect(color))
+    table.insert(highlights, color:highlight())
+  end
+
+  return highlights
+end
+
+-- Save vim colorscheme to file
+-- @param colorscheme string Name of the colorscheme
+-- @param file string File to save the vim colorscheme to
+-- @parma highlights table List of Group metatables
+local save_vim_colorscheme = function(colorscheme, file, highlights)
+  local f = assert(io.open(file, 'w'))
+
+  if f == nil then 
+    f.close()
+  end
+
+  local output = string.format([[
+  " Vim Color File
+  " Name:     %s
+  " Built On: %s
+  " Built With Colorbuddy.nvim
+
+  hi clear
+
+  if exists('syntax on') 
+    syntax reset 
+  endif
+  ]], colorscheme, os.date("%x"))
+
+  print("highlights", #highlights)
+  for _, highlight in ipairs(highlights) do 
+    output = output .. highlight .. "\n" 
+  end
+
+  f:write(output)
+  f:close()
 end
 
 local _clear_groups = function() group_hash = {} end
@@ -364,5 +413,14 @@ return {
     groups = groups,
     Group = Group,
     is_group_object = is_group_object,
+    list_groups = function() 
+      local results = {} 
+      for _, value in pairs(group_hash) do 
+        table.insert(results, value)
+      end
+      return results 
+    end,
+    generate_vim_highlights = generate_vim_highlights,
+    save_vim_colorscheme = save_vim_colorscheme,
     _clear_groups = _clear_groups,
 }
