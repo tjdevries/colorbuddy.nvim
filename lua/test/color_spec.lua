@@ -1,3 +1,5 @@
+require('plenary.test_harness'):setup_busted()
+
 -- Imports
 local colors = require('colorbuddy.color').colors
 local Color = require('colorbuddy.color').Color

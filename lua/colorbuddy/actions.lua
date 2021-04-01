@@ -1,32 +1,30 @@
 
-local _c = require('colorbuddy.color')
-local Color = require('colorbuddy.color').Color
 local colors = require('colorbuddy.color').colors
-
-local log = require('colorbuddy.log')
+local next_color = require('colorbuddy.color')._next_color
 
 local actions = {}
 
-actions.lighter = function()
-    local updated = {}
+local apply_action = function(action_name)
+  local updated = {}
 
-    for _, c in pairs(colors) do
-        if not updated[c] then
-            updated = Color.modifier_apply(c, 'light')
-        end
+  for _, c in next_color(colors) do
+    if not updated[c] then
+      local new_updates = c:modifier_apply(action_name)
+
+      updated[c] = true
+      for child, _ in pairs(new_updates) do
+        updated[child] = true
+      end
     end
+  end
+end
+
+actions.lighter = function()
+  apply_action('light')
 end
 
 actions.darker = function()
-    local updated = {}
-
-    for _, c in pairs(colors) do
-        if not updated[c] then
-            updated = Color.modifier_apply(c, 'dark')
-        end
-    end
+  apply_action('dark')
 end
 
-return {
-    actions = actions,
-}
+return actions
