@@ -15,10 +15,6 @@ vim.fn = vim.fn or setmetatable({}, {
 local groups = require('colorbuddy.group').groups
 local colors = require('colorbuddy.color').colors
 
-if vim then
-    require('colorbuddy.plugins')
-end
-
 local M = {
   groups = groups,
   Group = require('colorbuddy.group').Group,
@@ -30,22 +26,26 @@ local M = {
 -- Returns the most common and useful items.
 --  Probably don't even want this anymore... oh well.
 function M.setup()
-    return M.Color, M.colors, M.Group, M.groups, M.styles
+  return M.Color, M.colors, M.Group, M.groups, M.styles
 end
 
-function M.colorscheme(name, light)
-    local bg
-    if light then
-        bg = 'light'
-    else
-        bg =  'dark'
-    end
+function M.colorscheme(name, light, opts)
+  if not opts.disable_defaults then
+    require('colorbuddy.plugins')
+  end
 
-    vim.api.nvim_command('set termguicolors')
-    vim.api.nvim_command(string.format('let g:colors_name = "%s"', name))
-    vim.api.nvim_command(string.format('set background=%s', bg))
+  local bg
+  if light then
+    bg = 'light'
+  else
+    bg =  'dark'
+  end
 
-    require(name)
+  vim.api.nvim_command('set termguicolors')
+  vim.api.nvim_command(string.format('let g:colors_name = "%s"', name))
+  vim.api.nvim_command(string.format('set background=%s', bg))
+
+  require(name)
 end
 
 return M

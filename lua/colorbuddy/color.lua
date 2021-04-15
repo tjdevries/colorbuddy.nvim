@@ -347,14 +347,14 @@ local _clear_colors = function() color_hash = {} end
 
 
 Color.new('none')
-Color.new('gray0',     '#282c34')
-Color.new('gray1',     '#282a2e')
-Color.new('gray2',     '#373b41')
-Color.new('gray3',     '#969896')
-Color.new('gray4',     '#b4b7b4')
-Color.new('gray5',     '#c5c8c6')
-Color.new('gray6',     '#e0e0e0')
-Color.new('gray7',     '#ffffff')
+Color.new('gray0', '#282c34')
+Color.new('gray1', '#282a2e')
+Color.new('gray2', '#373b41')
+Color.new('gray3', '#969896')
+Color.new('gray4', '#b4b7b4')
+Color.new('gray5', '#c5c8c6')
+Color.new('gray6', '#e0e0e0')
+Color.new('gray7', '#ffffff')
 
 return {
     colors = colors,
