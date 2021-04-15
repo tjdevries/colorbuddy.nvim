@@ -12,8 +12,6 @@ vim.fn = vim.fn or setmetatable({}, {
   end
 })
 
-
-
 local groups = require('colorbuddy.group').groups
 local colors = require('colorbuddy.color').colors
 
@@ -22,28 +20,17 @@ if vim then
 end
 
 local M = {
-    groups = groups,
-    Group = require('colorbuddy.group').Group,
-    colors = colors,
-    Color = require('colorbuddy.color').Color,
-    styles = require('colorbuddy.style').styles,
+  groups = groups,
+  Group = require('colorbuddy.group').Group,
+  colors = colors,
+  Color = require('colorbuddy.color').Color,
+  styles = require('colorbuddy.style').styles,
 }
 
---- Exports globals so you can use them in a script.
---- Optionally returns them if you'd prefer to use them that way.
+-- Returns the most common and useful items.
+--  Probably don't even want this anymore... oh well.
 function M.setup()
-    Color = M.Color
-    c = M.colors
-    colors = M.colors
-
-    Group = M.Group
-    g = M.groups
-    groups = M.groups
-
-    s = M.styles
-    styles = M.styles
-
-    return Color, c, Group, g, s
+    return M.Color, M.colors, M.Group, M.groups, M.styles
 end
 
 function M.colorscheme(name, light)
