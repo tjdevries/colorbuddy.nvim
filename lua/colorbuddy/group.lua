@@ -294,6 +294,10 @@ Group.new = function(name, fg, bg, style)
     return Group.__private_create(name, fg, bg, style, false, false)
 end
 
+Group.link = function(name, linked_group)
+  return Group.new(name, linked_group, linked_group, linked_group)
+end
+
 function Group:apply()
     -- Only clear old highlighting if we're not the default
     if self.__default__ == false then
