@@ -30,6 +30,8 @@ function M.setup()
 end
 
 function M.colorscheme(name, light, opts)
+  opts = opts or {}
+
   if not opts.disable_defaults then
     require('colorbuddy.plugins')
   end
