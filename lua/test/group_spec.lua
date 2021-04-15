@@ -21,14 +21,17 @@ describe('Group object', function()
     it('should send an nvim command', function()
         Group.new('test_01', colors.yellow, colors.gray0, styles.bold)
     end)
+
     it('should send a comma list', function()
         Group.new('test_02', colors.yellow, colors.gray0, styles.bold + styles.italic)
     end)
+
     it('should be able to add a group to fg and bg', function()
         Group.new('func', colors.yellow, colors.gray0, styles.bold)
         Group.new('italicFunction', groups.func, groups.func, styles.italic)
         Group.new('copyFunc', groups.func, groups.func, groups.func)
     end)
+
     it('should have its fg change when it\'s parent\'s fg changes', function()
         -- TODO: Test changing a color and having it update
         Color.new('changing', '#aabbcc')
@@ -40,6 +43,7 @@ describe('Group object', function()
         assert.are.same('#ffccff', groups.copyfunc.fg:to_rgb())
         assert.are.same(groups.copyfunc.fg, groups.changingFunc.fg)
     end)
+
     it('should handle mixed addition', function()
         Group.new('start', colors.yellow, colors.gray0, styles.none)
         Color.new('adder', '#010101')
@@ -50,12 +54,14 @@ describe('Group object', function()
         assert.are_not.same(groups.start.fg, groups.finish.fg)
         assert.are.same(groups.start.bg, groups.finish.bg)
     end)
+
     it('should handle mixed addition: styles', function()
         Group.new('original', colors.yellow, colors.gray0, styles.bold)
         Group.new('addition', groups.original, groups.original, groups.original + styles.italic)
 
         assert.are.same(styles.bold + styles.italic, groups.addition.style)
     end)
+
     it('should handle mixed addition', function()
         Group.new('start', colors.yellow, colors.gray0, styles.none)
         Color.new('adder', '#010101')
@@ -70,6 +76,7 @@ describe('Group object', function()
     describe('Group.default', function()
         it('should send a default highlight link', function()
         end)
+
         it('should not overwrite an existing highlight', function()
             Group.new('test', colors.yellow, colors.gray0)
             Group.default('test', colors.gray0, colors.yellow)
@@ -77,6 +84,7 @@ describe('Group object', function()
             -- Should be original color
             assert.are.same(colors.yellow, groups.test.fg)
         end)
+
         it('should be overwritten by a new highlight', function()
             Group.default('test', colors.gray0, colors.yellow)
             assert.are.same(colors.gray0, groups.test.fg)

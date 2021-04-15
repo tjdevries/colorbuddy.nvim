@@ -3,10 +3,12 @@ local log = require('colorbuddy.log')
 local nvim = require('colorbuddy.nvim')
 local util = require('colorbuddy.util')
 
+local colors = require('colorbuddy.color').colors
+local styles = require('colorbuddy.style').styles
+
 local is_color_object = require('colorbuddy.color').is_color_object
 local is_style_object = require('colorbuddy.style').is_style_object
 
-local styles = require('colorbuddy.style').styles
 
 local is_group_object = function(g)
     if g == nil then
@@ -97,7 +99,15 @@ local __mixed_group_mt = {
 setmetatable(MixedGroup, __mixed_group_mt)
 
 local Group = {}
-Group.__defaults = {}
+Group.__index = Group
+Group.__add = group_handle_arithmetic('+')
+Group.__sub = group_handle_arithmetic('-')
+
+Group._defaults = {
+  fg = colors.none,
+  bg = colors.none,
+  style = styles.none,
+}
 
 Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
     local left_item, right_item
@@ -125,17 +135,12 @@ Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
 
     return execute.map(mixed.__operation__, left_item, right_item)
 end
-Group.set_default = function(property, value)
-    Group.__defaults[property] = value
-end
-Group.get_default = function(property)
-    return Group.__defaults[property]
-end
+
 Group.handle_group_argument = function(handler, val, property, valid_object_function, err_string)
     -- TODO: Keep track of the dependencies here?
     -- If the value is nil, and we have a default, just use that instead
-    if val == nil and Group.get_default(property) ~= nil then
-        return Group.get_default(property)
+    if val == nil and Group._defaults[property] ~= nil then
+        return Group._defaults[property]
     end
 
     -- Return the property of the group object
@@ -182,19 +187,10 @@ Group.__tostring = function(self)
     )
 end
 
-local __local_mt = {
-    __metatable = {},
-    __index = Group,
-    __tostring = Group.__tostring,
-
-    -- FIXME: Handle color modifiers --> lighten, darken, etc.
-    __add = group_handle_arithmetic('+'),
-    __sub = group_handle_arithmetic('-'),
-}
 
 Group.is_existing_group = function(key) return group_hash[string.lower(key)] ~= nil end
 
-Group.__private_create = function(name, fg, bg, style, default, bang)
+Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
     name = string.lower(name)
 
     local handler = {}
@@ -256,7 +252,7 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
 
             -- TODO: Should there be fg, bg, style?
             parents = {},
-        }, __local_mt)
+        }, Group)
 
         group_hash[name] = obj
     end
@@ -286,12 +282,12 @@ Group.__private_create = function(name, fg, bg, style, default, bang)
     return obj
 end
 
-Group.default = function(name, fg, bg, style, bang)
-    return Group.__private_create(name, fg, bg, style, true, bang)
+Group.default = function(name, fg, bg, style, guisp, bang)
+    return Group.__private_create(name, fg, bg, style, guisp, true, bang)
 end
 
-Group.new = function(name, fg, bg, style)
-    return Group.__private_create(name, fg, bg, style, false, false)
+Group.new = function(name, fg, bg, style, guisp)
+    return Group.__private_create(name, fg, bg, style, guisp, false, false)
 end
 
 Group.link = function(name, linked_group)

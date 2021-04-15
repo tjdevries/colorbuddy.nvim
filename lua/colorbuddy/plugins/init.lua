@@ -11,10 +11,6 @@ local s = require('colorbuddy.style').styles
 local background_string = '#282c34'
 Color.new('background', background_string)
 
-Group.set_default('fg', c.none)
-Group.set_default('bg', c.none)
-Group.set_default('style', s.none)
-
 Color.new('superwhite', '#E0E0E0')
 Color.new('softwhite', '#ebdbb2')
 Color.new('teal', '#018080')
