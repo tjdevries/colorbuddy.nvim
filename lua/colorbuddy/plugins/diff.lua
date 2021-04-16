@@ -1,32 +1,32 @@
-local c = require('colorbuddy.color').colors
-local Color = require('colorbuddy.color').Color
+local c = require("colorbuddy.color").colors
+local Color = require("colorbuddy.color").Color
 
-local g = require('colorbuddy.group').groups
-local Group = require('colorbuddy.group').Group
+local g = require("colorbuddy.group").groups
+local Group = require("colorbuddy.group").Group
 
-Color.new('GreenBg', '#002800' )
+Color.new("GreenBg", "#002800")
 -- Color.new('GreenChange', '#006000')
 
-Color.new('RedBg', '#3f0001')
-Color.new('Black', '#000000')
+Color.new("RedBg", "#3f0001")
+Color.new("Black", "#000000")
 
-Group.new('gitDiff', c.gray6:dark())
+Group.new("gitDiff", c.gray6:dark())
 
-Group.new('DiffChange', nil, c.GreenBg)
-Group.new('DiffText', nil, g.DiffChange.bg:light():light())
-Group.new('DiffAdd', nil, g.DiffChange.bg)
-Group.new('DiffDelete', nil, c.black)
+Group.new("DiffChange", nil, c.GreenBg)
+Group.new("DiffText", nil, g.DiffChange.bg:light():light())
+Group.new("DiffAdd", nil, g.DiffChange.bg)
+Group.new("DiffDelete", nil, c.black)
 
 -- commitia highlights
-Group.new('DiffRemoved', c.red)
-Group.new('DiffAdded', c.green, nil)
+Group.new("DiffRemoved", c.red)
+Group.new("DiffAdded", c.green, nil)
 
 -- TODO: Gotta fix these probably as well.
 -- Group.new('SignifyLineAdd', c.green, nil)
 -- Group.new('SignifyLineChange', nil, c.blue)
-Group.new('SignifySignAdd', c.green, nil)
-Group.new('SignifySignChange', c.yellow, nil)
-Group.new('SignifySignDelete', c.red, nil)
+Group.new("SignifySignAdd", c.green, nil)
+Group.new("SignifySignChange", c.yellow, nil)
+Group.new("SignifySignDelete", c.red, nil)
 
 --[[
 This is from the very helpful @recursivechat

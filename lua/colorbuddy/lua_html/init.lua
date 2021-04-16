@@ -1,25 +1,23 @@
-
-local log_module = require('colorbuddy.lua_html.log')
+local log_module = require("colorbuddy.lua_html.log")
 local debug = log_module.debug
 local log = log_module.log
 
 local nvim = vim.api
 
 if debug then
-  package.loaded[ 'colorbuddy.lua_html.log' ] = nil
-  package.loaded[ 'colorbuddy.lua_html.highlighted' ] = nil
-  package.loaded[ 'colorbuddy.lua_html.vim_element' ] = nil
-  package.loaded[ 'colorbuddy.lua_html.syntax_group' ] = nil
+  package.loaded["colorbuddy.lua_html.log"] = nil
+  package.loaded["colorbuddy.lua_html.highlighted"] = nil
+  package.loaded["colorbuddy.lua_html.vim_element"] = nil
+  package.loaded["colorbuddy.lua_html.syntax_group"] = nil
 end
 
 log_module.debug = false
 
-local inspect = require('inspect')
+local inspect = require("inspect")
 
-local highlighted = require('colorbuddy.lua_html.highlighted')
-local VimElement = require('colorbuddy.lua_html.vim_element')
-local SyntaxGroup = require('colorbuddy.lua_html.syntax_group')
-
+local highlighted = require("colorbuddy.lua_html.highlighted")
+local VimElement = require("colorbuddy.lua_html.vim_element")
+local SyntaxGroup = require("colorbuddy.lua_html.syntax_group")
 
 local __hl_ids = {}
 local __syn_ids = {}
@@ -28,17 +26,17 @@ local __syntax_attributes = {}
 local hl_ids = setmetatable({}, {
   __index = function(self, key)
     if __hl_ids[key] == nil then
-      __hl_ids[key] = nvim.nvim_call_function('hlID', { key })
+      __hl_ids[key] = nvim.nvim_call_function("hlID", { key })
     end
 
     return __hl_ids[key]
   end,
 })
 
-local syn_ids = setmetatable({ }, {
+local syn_ids = setmetatable({}, {
   __index = function(self, key)
     if __syn_ids[key] == nil then
-      __syn_ids[key] = nvim.nvim_call_function( 'synIDtrans', { hl_ids[key] })
+      __syn_ids[key] = nvim.nvim_call_function("synIDtrans", { hl_ids[key] })
     end
 
     return __syn_ids[key]
@@ -48,7 +46,7 @@ local syn_ids = setmetatable({ }, {
 local syntax_attributes = setmetatable({}, {
   __index = function(self, key)
     if __syntax_attributes[key] == nil then
-      log('syntax_attributes => creating new attribute', key)
+      log("syntax_attributes => creating new attribute", key)
 
       __syntax_attributes[key] = SyntaxGroup:new(key)
     end
@@ -57,9 +55,8 @@ local syntax_attributes = setmetatable({}, {
   end,
 })
 
-
 local syn_id_at_location = function(line, column)
-  return nvim.nvim_call_function('synIDtrans', { nvim.nvim_call_function('synID', { line, column, 1 }) })
+  return nvim.nvim_call_function("synIDtrans", { nvim.nvim_call_function("synID", { line, column, 1 }) })
 end
 
 local syn_ids_for_line = function(line, buffer_id)
@@ -72,34 +69,32 @@ local syn_ids_for_line = function(line, buffer_id)
 
   local groups = {}
   local previous_id = nil
-  local current_text = ''
+  local current_text = ""
 
   local previous_column = 0
-  for column = 1,max_column do
+  for column = 1, max_column do
     current_id = syn_id_at_location(line, column)
     current_text = current_text .. string.sub(current_line, column - 1, column - 1)
 
     if current_id ~= previous_id then
       if previous_id ~= nil then
-        if current_text ~= '' then
-          table.insert(groups, VimElement:new(
-            line,
-            previous_column,
-            column,
-            current_text,
-            syntax_attributes[previous_id]
-          ))
+        if current_text ~= "" then
+          table.insert(
+            groups,
+            VimElement:new(line, previous_column, column, current_text, syntax_attributes[previous_id])
+          )
         end
       end
 
       previous_id = current_id
-      current_text = ''
+      current_text = ""
       previous_column = column
     end
   end
 
-  if current_text ~= '' then
-    table.insert(groups,
+  if current_text ~= "" then
+    table.insert(
+      groups,
       VimElement:new(line, previous_column, max_column, current_text, syntax_attributes[previous_id])
     )
   end
@@ -110,7 +105,7 @@ end
 local get_html_line = function(line)
   ids_for_line = syn_ids_for_line(line)
 
-  final_string = ''
+  final_string = ""
   for index, value in ipairs(ids_for_line) do
     final_string = final_string .. highlighted.element(value)
   end
@@ -119,20 +114,20 @@ local get_html_line = function(line)
 end
 
 local convert_to_html = function(line_1, line_2, output_file)
-  file = io.open(output_file, 'w')
+  file = io.open(output_file, "w")
 
   if file == nil then
-    print('File could not be read: ', output_file)
+    print("File could not be read: ", output_file)
     return
   else
-    print('Writing to: ', output_file)
+    print("Writing to: ", output_file)
   end
 
   local parsed_lines = {}
   local __required_groups = {}
   local required_groups = {}
 
-  for line=line_1,line_2 do
+  for line = line_1, line_2 do
     current_ids = syn_ids_for_line(line)
     table.insert(parsed_lines, current_ids)
 

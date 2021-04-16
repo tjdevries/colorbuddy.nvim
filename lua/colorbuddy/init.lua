@@ -5,22 +5,22 @@
 vim.fn = vim.fn or setmetatable({}, {
   __index = function(t, key)
     local function _fn(...)
-      return vim.api.nvim_call_function(key, {...})
+      return vim.api.nvim_call_function(key, { ... })
     end
     t[key] = _fn
     return _fn
-  end
+  end,
 })
 
-local groups = require('colorbuddy.group').groups
-local colors = require('colorbuddy.color').colors
+local groups = require("colorbuddy.group").groups
+local colors = require("colorbuddy.color").colors
 
 local M = {
   groups = groups,
-  Group = require('colorbuddy.group').Group,
+  Group = require("colorbuddy.group").Group,
   colors = colors,
-  Color = require('colorbuddy.color').Color,
-  styles = require('colorbuddy.style').styles,
+  Color = require("colorbuddy.color").Color,
+  styles = require("colorbuddy.style").styles,
 }
 
 -- Returns the most common and useful items.
@@ -33,19 +33,19 @@ function M.colorscheme(name, light, opts)
   opts = opts or {}
 
   if not opts.disable_defaults then
-    require('colorbuddy.plugins')
+    require("colorbuddy.plugins")
   end
 
   local bg
   if light then
-    bg = 'light'
+    bg = "light"
   else
-    bg =  'dark'
+    bg = "dark"
   end
 
-  vim.api.nvim_command('set termguicolors')
+  vim.api.nvim_command("set termguicolors")
   vim.api.nvim_command(string.format('let g:colors_name = "%s"', name))
-  vim.api.nvim_command(string.format('set background=%s', bg))
+  vim.api.nvim_command(string.format("set background=%s", bg))
 
   require(name)
 end

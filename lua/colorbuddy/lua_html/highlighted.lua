@@ -1,12 +1,11 @@
-
-local template = require('resty.template')
+local template = require("resty.template")
 template.caching(false)
 
 local highlighted = {}
 local compiled = {
-  element = template.compile('templates/element.html'),
-  line = template.compile('templates/vim_line.html'),
-  file = template.compile('templates/file.html'),
+  element = template.compile("templates/element.html"),
+  line = template.compile("templates/vim_line.html"),
+  file = template.compile("templates/file.html"),
 }
 
 highlighted.element = function(group)

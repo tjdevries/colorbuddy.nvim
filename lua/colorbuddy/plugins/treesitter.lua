@@ -1,8 +1,8 @@
-local Color = require('colorbuddy.color').Color
-local c = require('colorbuddy.color').colors
+local Color = require("colorbuddy.color").Color
+local c = require("colorbuddy.color").colors
 
-local Group = require('colorbuddy.group').Group
-local g = require('colorbuddy.group').groups
+local Group = require("colorbuddy.group").Group
+local g = require("colorbuddy.group").groups
 
 Group.new("TSInclude", g.include)
 
@@ -11,4 +11,3 @@ Group.new("TSVariable", g.Normal)
 Group.new("TSFunction", g.Function)
 
 Group.new("TSVariableBuiltin", c.yellow)
-

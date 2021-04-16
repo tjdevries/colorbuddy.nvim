@@ -1,22 +1,22 @@
-local c = require('colorbuddy.color').colors
+local c = require("colorbuddy.color").colors
 
-local Group = require('colorbuddy.group').Group
-local g = require('colorbuddy.group').groups
+local Group = require("colorbuddy.group").Group
+local g = require("colorbuddy.group").groups
 
 --  Semshi
 -- Original hi semshiSelf            ctermfg=249 guifg=#b2b2b2
-Group.new('semshiSelf', g.pythonSelf, g.pythonSelf, g.pythonSelf)
+Group.new("semshiSelf", g.pythonSelf, g.pythonSelf, g.pythonSelf)
 
 -- Original hi semshiLocal           ctermfg=209 guifg=#ff875f
-Group.new('semshiLocal', nil, nil, nil)
+Group.new("semshiLocal", nil, nil, nil)
 -- Original hi semshiImported        ctermfg=214 guifg=#ffaf00 cterm=bold gui=bold
-Group.new('semshiImported', c.blue, nil)
+Group.new("semshiImported", c.blue, nil)
 -- Original hi semshiSelected        ctermfg=231 guifg=#ffffff ctermbg=161 guibg=#d7005f
-Group.new('semshiSelected', nil, c.background:light())
+Group.new("semshiSelected", nil, c.background:light())
 
 -- This one doesn't seem to be very reliable.
 -- Original hi semshiFree            ctermfg=218 guifg=#ffafd7
-Group.new('semshiFree', nil, nil, nil)
+Group.new("semshiFree", nil, nil, nil)
 
 -- TODO:
 -- Original hi semshiGlobal          ctermfg=214 guifg=#ffaf00

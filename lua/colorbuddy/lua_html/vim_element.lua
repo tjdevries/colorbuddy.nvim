@@ -1,12 +1,11 @@
-
 local attributes = {
   name = true,
   fg = true,
   bg = true,
   font = true,
   sp = true,
-  ['fg#'] = true,
-  ['bg#'] = true,
+  ["fg#"] = true,
+  ["bg#"] = true,
   bold = true,
   italic = true,
   reverse = true,
@@ -23,7 +22,7 @@ local __vim_element_mt = {
     end
 
     if attributes[key] ~= nil then
-      return rawget(self, 'syntax_attribute')[key]
+      return rawget(self, "syntax_attribute")[key]
     end
 
     return nil
@@ -41,6 +40,5 @@ VimElement.new = function(self, line, start_column, end_column, text, syntax_att
     syntax_attribute = syntax_attribute,
   }, __vim_element_mt)
 end
-
 
 return VimElement
