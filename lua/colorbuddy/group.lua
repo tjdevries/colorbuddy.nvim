@@ -187,7 +187,7 @@ Group.is_existing_group = function(key)
   return _group_hash[string.lower(key)] ~= nil
 end
 
-Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
+Group.__private_create = function(name, fg, bg, style, guisp, blend, default, bang)
   name = string.lower(name)
 
   local handler = {}
@@ -229,6 +229,7 @@ Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
     obj.bg = bg_color
     obj.style = style_style
     obj.guisp = guisp_color
+    obj.blend = blend
 
     obj:update()
   else
@@ -245,6 +246,7 @@ Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
       bg = bg_color,
       style = style_style,
       guisp = guisp_color,
+      blend = blend,
 
       children = {
         fg = {},
@@ -289,12 +291,12 @@ Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
   return obj
 end
 
-Group.default = function(name, fg, bg, style, guisp, bang)
-  return Group.__private_create(name, fg, bg, style, guisp, true, bang)
+Group.default = function(name, fg, bg, style, guisp, blend, bang)
+  return Group.__private_create(name, fg, bg, style, guisp, blend, true, bang)
 end
 
-Group.new = function(name, fg, bg, style, guisp)
-  return Group.__private_create(name, fg, bg, style, guisp, false, false)
+Group.new = function(name, fg, bg, style, guisp, blend)
+  return Group.__private_create(name, fg, bg, style, guisp, blend, false, false)
 end
 
 Group.link = function(name, linked_group)
@@ -321,6 +323,7 @@ function Group:apply()
       Example: >
           :hi comment guifg='salmon pink'
   --]]
+
   -- Only clear old highlighting if we're not the default
   if self.__default__ == false then
     -- Clear the current highlighting
@@ -328,7 +331,7 @@ function Group:apply()
   end
 
   -- Apply the new highlighting
-  vim.api.nvim_command(string.format(
+  local command = string.format(
     "highlight%s %s %s guifg=%s guibg=%s gui=%s guisp=%s",
     execute.fif(self.__bang__, "!", ""),
     execute.fif(self.__default__, "default", ""),
@@ -337,7 +340,13 @@ function Group:apply()
     self.bg:to_rgb(),
     self.style:to_nvim(),
     self.guisp:to_rgb()
-  ))
+  )
+
+  if self.blend then
+    command = command .. string.format(" blend=%s", self.blend)
+  end
+
+  vim.api.nvim_command(command)
 end
 
 Group.update = function(self, updated)
