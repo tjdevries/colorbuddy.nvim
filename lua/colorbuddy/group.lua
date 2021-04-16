@@ -1,6 +1,5 @@
 local execute = require("colorbuddy.execute")
 local log = require("colorbuddy.log")
-local nvim = require("colorbuddy.nvim")
 local util = require("colorbuddy.util")
 
 local colors = require("colorbuddy.color").colors
@@ -17,25 +16,23 @@ local is_group_object = function(g)
   return g.__type__ == "group"
 end
 
-local group_hash = {}
-local find_group = function(_, raw_key)
-  local key = string.lower(raw_key)
+local _group_hash = {}
+local groups = setmetatable({}, {
+  __index = function(_, raw_key)
+    local key = string.lower(raw_key)
 
-  if group_hash[key] ~= nil then
-    return group_hash[key]
-  end
+    if _group_hash[key] ~= nil then
+      return _group_hash[key]
+    end
 
-  return {}
-end
+    return {}
+  end,
 
-local groups = {}
-local __groups_mt = {
-  __metatable = {},
-  __index = find_group,
-}
-setmetatable(groups, __groups_mt)
-
-local MixedGroup = {}
+  __newindex = function(_, raw_key, value)
+    local key = string.lower(raw_key)
+    _group_hash[key] = value
+  end,
+})
 
 local group_handle_arithmetic = function(operation)
   return function(left, right)
@@ -80,6 +77,7 @@ local group_handle_arithmetic = function(operation)
     return mixed
   end
 end
+
 local is_mixed_object = function(m)
   if m == nil then
     return false
@@ -88,23 +86,36 @@ local is_mixed_object = function(m)
   return m.__type__ == "mixed"
 end
 
-local __mixed_group_mt = {
+local MixedGroup = setmetatable({}, {
   __metatable = {},
 
   __add = group_handle_arithmetic("+"),
   __sub = group_handle_arithmetic("-"),
-}
-setmetatable(MixedGroup, __mixed_group_mt)
+})
 
 local Group = {}
 Group.__index = Group
 Group.__add = group_handle_arithmetic("+")
 Group.__sub = group_handle_arithmetic("-")
+Group.__tostring = function(self)
+  if self == nil then
+    return ""
+  end
+
+  return string.format(
+    "[%s: fg=%s, bg=%s, s=%s]",
+    tostring(self.name),
+    tostring(self.fg.name),
+    tostring(self.bg.name),
+    tostring(self.style.name)
+  )
+end
 
 Group._defaults = {
   fg = colors.none,
   bg = colors.none,
   style = styles.none,
+  guisp = colors.none,
 }
 
 Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
@@ -172,22 +183,8 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
   error(err_string .. ": " .. val_repr)
 end
 
-Group.__tostring = function(self)
-  if self == nil then
-    return ""
-  end
-
-  return string.format(
-    "[%s: fg=%s, bg=%s, s=%s]",
-    tostring(self.name),
-    tostring(self.fg.name),
-    tostring(self.bg.name),
-    tostring(self.style.name)
-  )
-end
-
 Group.is_existing_group = function(key)
-  return group_hash[string.lower(key)] ~= nil
+  return _group_hash[string.lower(key)] ~= nil
 end
 
 Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
@@ -197,22 +194,31 @@ Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
 
   local fg_color, fg_parent =
     Group.handle_group_argument(handler, fg, "fg", is_color_object, "Not a valid foreground color")
-  local bg_color, bg_parent =
-    Group.handle_group_argument(handler, bg, "bg", is_color_object, "Not a valid background color")
-  local style_style, style_parent =
-    Group.handle_group_argument(handler, style, "style", is_style_object, "Not a valid style")
 
   if not is_color_object(fg_color) then
     error("Bad foreground color: " .. debug.traceback())
   end
 
+  local bg_color, bg_parent =
+    Group.handle_group_argument(handler, bg, "bg", is_color_object, "Not a valid background color")
+
   if not is_color_object(bg_color) then
     error("Bad background color: " .. debug.traceback())
   end
 
+  local guisp_color, guisp_parent =
+    Group.handle_group_argument(handler, guisp, "guisp", is_color_object, "Not a valid guisp color")
+
+  if not is_color_object(guisp_color) then
+    error("Bad guisp color: " .. debug.traceback())
+  end
+
+  local style_style, style_parent =
+    Group.handle_group_argument(handler, style, "style", is_style_object, "Not a valid style")
+
   local obj
   if Group.is_existing_group(name) then
-    obj = find_group(nil, name)
+    obj = groups[name]
 
     -- Only apply the updates if it isn't a default
     if default then
@@ -222,6 +228,7 @@ Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
     obj.fg = fg_color
     obj.bg = bg_color
     obj.style = style_style
+    obj.guisp = guisp_color
 
     obj:update()
   else
@@ -237,18 +244,20 @@ Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
       fg = fg_color,
       bg = bg_color,
       style = style_style,
+      guisp = guisp_color,
 
       children = {
         fg = {},
         bg = {},
         style = {},
+        guisp = {},
       },
 
       -- TODO: Should there be fg, bg, style?
       parents = {},
     }, Group)
 
-    group_hash[name] = obj
+    groups[name] = obj
   end
 
   -- Notify producers they have a new consumer
@@ -270,6 +279,10 @@ Group.__private_create = function(name, fg, bg, style, guisp, default, bang)
     style_parent.children.style[obj] = true
   end
 
+  if guisp_parent then
+    guisp_parent.children.guisp[obj] = true
+  end
+
   -- Send Neovim our updated group
   Group.apply(obj)
 
@@ -289,21 +302,41 @@ Group.link = function(name, linked_group)
 end
 
 function Group:apply()
+  --[[
+
+  guifg={color-name}                  *highlight-guifg*
+  guibg={color-name}                  *highlight-guibg*
+  guisp={color-name}                  *highlight-guisp*
+      These give the foreground (guifg), background (guibg) and special
+      (guisp) color to use in the GUI.  "guisp" is used for undercurl
+      and underline.
+      There are a few special names:
+          NONE        no color (transparent)
+          bg      use normal background color
+          background  use normal background color
+          fg      use normal foreground color
+          foreground  use normal foreground color
+      To use a color name with an embedded space or other special character,
+      put it in single quotes.  The single quote cannot be used then.
+      Example: >
+          :hi comment guifg='salmon pink'
+  --]]
   -- Only clear old highlighting if we're not the default
   if self.__default__ == false then
     -- Clear the current highlighting
-    nvim.nvim_command(string.format("highlight %s NONE", self.name))
+    vim.api.nvim_command(string.format("highlight %s NONE", self.name))
   end
 
   -- Apply the new highlighting
-  nvim.nvim_command(string.format(
-    "highlight%s %s %s guifg=%s guibg=%s gui=%s",
+  vim.api.nvim_command(string.format(
+    "highlight%s %s %s guifg=%s guibg=%s gui=%s guisp=%s",
     execute.fif(self.__bang__, "!", ""),
     execute.fif(self.__default__, "default", ""),
     self.name,
     self.fg:to_rgb(),
     self.bg:to_rgb(),
-    self.style:to_nvim()
+    self.style:to_nvim(),
+    self.guisp:to_rgb()
   ))
 end
 
@@ -349,7 +382,7 @@ Group.update = function(self, updated)
 end
 
 local _clear_groups = function()
-  group_hash = {}
+  _group_hash = {}
 end
 
 return {

@@ -4,7 +4,7 @@ local Color = require("colorbuddy.color").Color
 
 local modifiers = require("colorbuddy.modifiers").modifiers
 
-local helper = require("test.helper")
+local helper = require("tests.helper")
 
 local log = require("colorbuddy.log")
 -- log.level = log.level_enum.debug

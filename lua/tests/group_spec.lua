@@ -6,7 +6,7 @@ local colors = require("colorbuddy.color").colors
 
 local styles = require("colorbuddy.style").styles
 
-local helper = require("test.helper")
+local helper = require("tests.helper")
 
 describe("Group object", function()
   before_each(function()

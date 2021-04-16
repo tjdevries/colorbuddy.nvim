@@ -1,6 +1,6 @@
 local util = require("colorbuddy.util")
 
--- local helper = require('test.helper')
+-- local helper = require('tests.helper')
 
 describe("hsl <-> rgb functions", function()
   it("should convert between hsl and rgb just fine", function()

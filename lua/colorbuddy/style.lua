@@ -113,10 +113,12 @@ end
 Style.new("bold")
 Style.new("underline")
 Style.new("undercurl")
+Style.new("strikethrough")
 Style.new("reverse")
 Style.new("inverse")
 Style.new("italic")
 Style.new("standout")
+Style.new("nocombine")
 Style.new("NONE")
 
 -- Make styles (mostly) readonly

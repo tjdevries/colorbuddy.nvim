@@ -38,6 +38,7 @@ local operator_intensity = function(operand)
     return { util.rgb_to_hsl(unpack(result_rgb)) }
   end
 end
+
 -- Modifier table
 -- Must have signature of (H, S, L, ...)
 -- and then return {H, S, L}
@@ -47,7 +48,7 @@ modifiers.dark = function(H, S, L, amount)
     amount = 0.1
   end
 
-  return { H, S, L - amount }
+  return { H, S, math.max(0, L - amount) }
 end
 
 modifiers.light = function(H, S, L, amount)

@@ -1,10 +1,10 @@
-if not vim then
+if true then
   return
 end
 
 local html = require("colorbuddy.lua_html.init")
 
-local helper = require("test.helper")
+local helper = require("tests.helper")
 local eq = helper.eq_float
 
 describe("Basic Syntax", function()

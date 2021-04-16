@@ -1,3 +1,9 @@
+-- TODO: Check out
+--  - vim.api.nvim_get_color_map()
+--  - vim.api.nvim_get_color_by_name()
+--
+-- These may allow some cool integrations.
+
 local log = require("colorbuddy.log")
 
 local modifiers = require("colorbuddy.modifiers").modifiers
@@ -6,13 +12,9 @@ local util = require("colorbuddy.util")
 local Color
 
 local color_hash = {}
-
 local function add_color(c)
   log.debug("Adding color: ", c.name)
-
   color_hash[string.lower(c.name)] = c
-
-  log.debug("Success")
 end
 
 local function is_existing_color(raw_key)
@@ -206,9 +208,17 @@ Color.new = function(name, H, S, L, mods)
   return object
 end
 
+local special_colors = {
+  none = "none",
+  bg = "bg",
+  background = "background",
+  fg = "fg",
+  foreground = "foreground",
+}
+
 Color.to_rgb = function(self, H, S, L)
-  if self.name == "none" then
-    return "none"
+  if special_colors[self.name] then
+    return special_colors[self.name]
   end
 
   if H == nil then

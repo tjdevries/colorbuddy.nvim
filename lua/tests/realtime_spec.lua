@@ -6,7 +6,7 @@ local Color = require("colorbuddy.color").Color
 local colors = require("colorbuddy.color").colors
 
 local styles = require("colorbuddy.style").styles
-local helper = require("test.helper")
+local helper = require("tests.helper")
 
 describe("Real time updates", function()
   before_each(function()
