@@ -75,3 +75,5 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 
 - [Nightbuddy](https://github.com/DilanGMB/nightbuddy)
 
+- [Snazzybuddy](https://github.com/bbenzikry/snazzybuddy.nvim)
+
