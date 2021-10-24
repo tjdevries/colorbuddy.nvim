@@ -75,3 +75,5 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 
 - [Nightbuddy](https://github.com/DilanGMB/nightbuddy)
 
+- [Palebuddy](https://github.com/magicmonty/palebuddy.nvim)
+
