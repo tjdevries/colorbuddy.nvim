@@ -19,6 +19,7 @@ Color.new("teal", "#018080")
 Group.new("Normal", c.superwhite, c.gray0)
 Group.new("InvNormal", c.gray0, c.gray5)
 Group.new("NormalFloat", g.normal.fg:light(), g.normal.bg:dark())
+Group.new("FloatBorder", c.gray0:light(), g.NormalFloat)
 
 Group.new("LineNr", c.gray3, c.gray1)
 Group.new("EndOfBuffer", c.gray3)
@@ -67,7 +68,7 @@ Group.new("TabLineSel", c.gray7:light(), c.gray1, s.bold)
 --2 Sign Column
 --1 Standard syntax
 Group.new("Boolean", c.orange)
-Group.new("Comment", c.gray3, nil, nil)
+Group.new("Comment", c.gray3:light(), nil, s.italic)
 Group.new("Character", c.red)
 Group.new("Conditional", c.red)
 Group.new("Define", c.cyan)

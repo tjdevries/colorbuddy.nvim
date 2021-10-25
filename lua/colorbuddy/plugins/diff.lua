@@ -4,18 +4,20 @@ local Color = require("colorbuddy.color").Color
 local g = require("colorbuddy.group").groups
 local Group = require("colorbuddy.group").Group
 
-Color.new("GreenBg", "#002800")
--- Color.new('GreenChange', '#006000')
+Color.new("Changed", "#33423e")
+Color.new("ChangedText", "#3e4a47")
+-- Color.new('ChangedText', '#006000')
 
 Color.new("RedBg", "#3f0001")
 Color.new("Black", "#000000")
+Color.new("Deleted", "#24282f")
 
 Group.new("gitDiff", c.gray6:dark())
 
-Group.new("DiffChange", nil, c.GreenBg)
-Group.new("DiffText", nil, g.DiffChange.bg:light():light())
+Group.new("DiffChange", nil, c.Changed)
+Group.new("DiffText", nil, c.ChangedText)
 Group.new("DiffAdd", nil, g.DiffChange.bg)
-Group.new("DiffDelete", nil, c.black)
+Group.new("DiffDelete", c.Deleted:light(), c.Deleted)
 
 -- commitia highlights
 Group.new("DiffRemoved", c.red)

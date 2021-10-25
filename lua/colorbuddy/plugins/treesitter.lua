@@ -11,3 +11,5 @@ Group.new("TSVariable", g.Normal)
 Group.new("TSFunction", g.Function)
 
 Group.new("TSVariableBuiltin", c.yellow)
+
+Group.new("graphqlTSProperty", c.blue)
