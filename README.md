@@ -75,3 +75,7 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 
 - [Nightbuddy](https://github.com/DilanGMB/nightbuddy)
 
+- [Henna.nvim](https://github.com/nyxkrage/henna.nvim)
+
+![screenshot of henna.nvim](https://raw.githubusercontent.com/nyxkrage/henna.nvim/main/media/henna.nvim.png)
+
