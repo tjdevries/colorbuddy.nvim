@@ -42,7 +42,6 @@ Group.new('luaFunctionCall' , groups.Function    , groups.Function   , groups.Fu
 Group.new('Error'           , colors.red:light() , nil               , s.bold)
 ```
 
-
 ### Advanced Examples
 
 ```lua
@@ -62,8 +61,7 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 - [Gruvbuddy](https://github.com/tjdevries/gruvbuddy.nvim) (Made by me!)
 
 - [Haoren-Nordic](https://github.com/haorenW1025/config/blob/master/.config/nvim/lua/color.lua)
-
-![haoren](https://raw.githubusercontent.com/tjdevries/media.repo/master/colorbuddy.nvim/haoren_nord_scheme.png)
+  ![haoren](https://raw.githubusercontent.com/tjdevries/media.repo/master/colorbuddy.nvim/haoren_nord_scheme.png)
 
 - [Modus-Themes](https://github.com/ishan9299/modus-theme-vim)
 
@@ -76,6 +74,7 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 - [Nightbuddy](https://github.com/DilanGMB/nightbuddy)
 
 - [Henna.nvim](https://github.com/nyxkrage/henna.nvim)
+  ![screenshot of henna.nvim](https://raw.githubusercontent.com/nyxkrage/henna.nvim/main/media/henna.nvim.png)
 
-![screenshot of henna.nvim](https://raw.githubusercontent.com/nyxkrage/henna.nvim/main/media/henna.nvim.png)
-
+- [cobalt2.nvim](https://github.com/lalitmee/cobalt2.nvim)
+  ![screenshot of henna.nvim](https://github.com/lalitmee/cobalt2.nvim/blob/master/media/telescope.png?raw=true)
