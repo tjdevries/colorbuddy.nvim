@@ -6,16 +6,6 @@ Written in Lua! Quick & Easy Color Schemes :smile:
 
 Sincerely, your color buddy.
 
-## Benefits
-
-Live changing of colors (and inherited colors!)
-
-![changing_colors](https://raw.githubusercontent.com/tjdevries/media.repo/3c0eedb38a51e45d2455fc167535de1fd0cfc99d/colorbuddy.nvim/_simple.svg)
-
-Inheritance
-
-![inheritance](https://raw.githubusercontent.com/tjdevries/media.repo/3c0eedb38a51e45d2455fc167535de1fd0cfc99d/colorbuddy.nvim/_inheritance.svg)
-
 ## Example
 
 Your color buddy for making cool neovim color schemes. Write your colorscheme in lua!
@@ -59,23 +49,4 @@ Group.new('boldFunction', colors.yellow, colors.background, groups.italicBoldFun
 
 ## Made with Colorbuddy
 
-- [Gruvbuddy](https://github.com/tjdevries/gruvbuddy.nvim) (Made by me!)
-
-- [Haoren-Nordic](https://github.com/haorenW1025/config/blob/master/.config/nvim/lua/color.lua)
-
-![haoren](https://raw.githubusercontent.com/tjdevries/media.repo/master/colorbuddy.nvim/haoren_nord_scheme.png)
-
-- [Modus-Themes](https://github.com/ishan9299/modus-theme-vim)
-
-- [Spacebuddy](https://github.com/Th3Whit3Wolf/spacebuddy)
-
-- [Onebuddy](https://github.com/Th3Whit3Wolf/onebuddy)
-
-- [Material.nvim](https://github.com/marko-cerovac/material.nvim)
-
-- [Nightbuddy](https://github.com/DilanGMB/nightbuddy)
-
-- [Henna.nvim](https://github.com/nyxkrage/henna.nvim)
-
-![screenshot of henna.nvim](https://raw.githubusercontent.com/nyxkrage/henna.nvim/main/media/henna.nvim.png)
-
+See the wiki!
