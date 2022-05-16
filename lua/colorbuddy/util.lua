@@ -1,8 +1,10 @@
--- Some table setup... as always
--- luacheck: globals table.extend
--- luacheck: globals table.slice
+-- TODO: Use newer `vim.tbl_` methods when I get a chance.
 
-table.slice = function(tbl, first, last, step)
+-- Pretty much all of the util functions come from:
+--      https://github.com/yuri/lua-colors/blob/master/lua/colors.lua
+local util = {}
+
+util.tbl_slice = function(tbl, first, last, step)
   local sliced = {}
 
   for i = first or 1, last or #tbl, step or 1 do
@@ -11,7 +13,8 @@ table.slice = function(tbl, first, last, step)
 
   return sliced
 end
-table.extend = function(t1, t2)
+
+util.tbl_extend = function(t1, t2)
   local t3 = {}
   for i = 1, #t1 do
     t3[i] = t1[i]
@@ -23,9 +26,6 @@ table.extend = function(t1, t2)
 
   return t3
 end
--- Pretty much all of the util functions come from:
---      https://github.com/yuri/lua-colors/blob/master/lua/colors.lua
-local util = {}
 
 util.rgb_string_to_hsl = function(rgb)
   return util.rgb_to_hsl(
@@ -137,7 +137,9 @@ util.hsl_to_rgb = function(h, s, L)
     return p
   end
 
-  return util.clamp(hue_to_rgb(m1, m2, h + 1 / 3), 0, 1), util.clamp(hue_to_rgb(m1, m2, h), 0, 1), util.clamp(hue_to_rgb(m1, m2, h - 1 / 3), 0, 1)
+  return util.clamp(hue_to_rgb(m1, m2, h + 1 / 3), 0, 1),
+    util.clamp(hue_to_rgb(m1, m2, h), 0, 1),
+    util.clamp(hue_to_rgb(m1, m2, h - 1 / 3), 0, 1)
 end
 
 util.hsl_to_rgb_string = function(H, S, L)
@@ -173,6 +175,16 @@ util.key_concat = function(t, str)
 
   table.sort(key_table)
   return table.concat(key_table, str)
+end
+
+util.between = function(val, low, high)
+  assert(type(val) == "number", "can only pass numbers to between")
+  return val >= low and val <= high
+end
+
+util.fmt_percent = function(val)
+  assert(util.between(val, 0, 1), "percentages have to be between 0 and 1")
+  return string.format("%0.2f%%", val * 100)
 end
 
 return util

@@ -1,19 +1,20 @@
-local _c = require("colorbuddy.color")
 local Color = require("colorbuddy.color").Color
-local colors = require("colorbuddy.color").colors
-
-local log = require("colorbuddy.log")
+local colors = require("colorbuddy.color")._color_hash
 
 local actions = {}
 
 actions.lighter = function()
   local updated = {}
 
+  print("lighter...")
   for _, c in pairs(colors) do
     if not updated[c] then
-      updated = Color.modifier_apply(c, "light")
+      vim.tbl_extend("force", updated, c:modifier_apply("light"))
     end
   end
+
+  print("... done")
+  print("____")
 end
 
 actions.darker = function()
@@ -21,11 +22,9 @@ actions.darker = function()
 
   for _, c in pairs(colors) do
     if not updated[c] then
-      updated = Color.modifier_apply(c, "dark")
+      vim.tbl_extend("force", updated, Color.modifier_apply(c, "light"))
     end
   end
 end
 
-return {
-  actions = actions,
-}
+return actions

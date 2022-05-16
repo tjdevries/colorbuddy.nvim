@@ -192,29 +192,49 @@ Group.__private_create = function(name, fg, bg, style, guisp, blend, default, ba
 
   local handler = {}
 
-  local fg_color, fg_parent =
-    Group.handle_group_argument(handler, fg, "fg", is_color_object, "Not a valid foreground color")
+  local fg_color, fg_parent = Group.handle_group_argument(
+    handler,
+    fg,
+    "fg",
+    is_color_object,
+    "Not a valid foreground color"
+  )
 
   if not is_color_object(fg_color) then
     error("Bad foreground color: " .. debug.traceback())
   end
 
-  local bg_color, bg_parent =
-    Group.handle_group_argument(handler, bg, "bg", is_color_object, "Not a valid background color")
+  local bg_color, bg_parent = Group.handle_group_argument(
+    handler,
+    bg,
+    "bg",
+    is_color_object,
+    "Not a valid background color"
+  )
 
   if not is_color_object(bg_color) then
     error("Bad background color: " .. debug.traceback())
   end
 
-  local guisp_color, guisp_parent =
-    Group.handle_group_argument(handler, guisp, "guisp", is_color_object, "Not a valid guisp color")
+  local guisp_color, guisp_parent = Group.handle_group_argument(
+    handler,
+    guisp,
+    "guisp",
+    is_color_object,
+    "Not a valid guisp color"
+  )
 
   if not is_color_object(guisp_color) then
-    error("Bad guisp color: " .. debug.traceback())
+    error("Bad guisp color: " .. vim.inspect(guisp_color))
   end
 
-  local style_style, style_parent =
-    Group.handle_group_argument(handler, style, "style", is_style_object, "Not a valid style")
+  local style_style, style_parent = Group.handle_group_argument(
+    handler,
+    style,
+    "style",
+    is_style_object,
+    "Not a valid style"
+  )
 
   local obj
   if Group.is_existing_group(name) then

@@ -1,3 +1,5 @@
+-- TODO: Switch over to `.base` and use HSL directly
+
 local log = require("colorbuddy.log")
 local util = require("colorbuddy.util")
 

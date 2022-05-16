@@ -1,7 +1,5 @@
 local _ = require("colorbuddy.util")
 -- util gives us some new globals:
--- luacheck: globals table.extend
--- luacheck: globals table.slice
 
 local key_concat = _.key_concat
 
