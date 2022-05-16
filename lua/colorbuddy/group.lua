@@ -350,16 +350,22 @@ function Group:apply()
     vim.api.nvim_command(string.format("highlight %s NONE", self.name))
   end
 
+  local ok = pcall(self.fg.to_vim, self.fg)
+  if not ok then
+    error("BROKEN:" .. vim.inspect(self.fg))
+    return
+  end
+
   -- Apply the new highlighting
   local command = string.format(
     "highlight%s %s %s guifg=%s guibg=%s gui=%s guisp=%s",
     execute.fif(self.__bang__, "!", ""),
     execute.fif(self.__default__, "default", ""),
     self.name,
-    self.fg:to_rgb(),
-    self.bg:to_rgb(),
+    self.fg:to_vim(),
+    self.bg:to_vim(),
     self.style:to_nvim(),
-    self.guisp:to_rgb()
+    self.guisp:to_vim()
   )
 
   if self.blend then
@@ -402,11 +408,8 @@ Group.update = function(self, updated)
   end
 
   for child, _ in pairs(children_to_update) do
-    if child.update ~= nil then
-      child:update(updated)
-    else
-      log.warn("No update method found for:", child)
-    end
+    assert(child.update, "Must have an update method: " .. tostring(child))
+    child:update(updated)
   end
 end
 

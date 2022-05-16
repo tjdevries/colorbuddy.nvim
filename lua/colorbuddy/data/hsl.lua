@@ -16,6 +16,10 @@ function HSL:new(h, s, l)
   assert(util.between(s, 0, 1), "s must be between 0 and 1")
   assert(util.between(l, 0, 1), "l must be between 0 and 1")
 
+  if h == 360 then
+    h = 0
+  end
+
   return setmetatable({
     H = h,
     S = s,
@@ -43,7 +47,7 @@ function HSL:from_rgb(rgb)
 
   -- Achromatic, can skip the rest
   if max == min then
-    return max * 359, 0, l
+    return HSL:new(max * 360, 0, l)
   end
 
   if l < 0.5 then
@@ -79,11 +83,7 @@ function HSL:from_rgb(rgb)
   assert(util.between(h, 0, 1), "h must not be negative by now")
   assert(util.between(s, 0, 1), "s must be between 0 and 1")
   assert(util.between(l, 0, 1), "l must be between 0 and 1")
-  if h == 1 then
-    return self:new(0, s, l)
-  else
-    return self:new(h * 360, s, l)
-  end
+  return self:new(h * 360, s, l)
 end
 
 return HSL

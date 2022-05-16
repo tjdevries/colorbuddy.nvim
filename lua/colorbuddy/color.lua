@@ -5,6 +5,7 @@
 -- These may allow some cool integrations.
 
 local log = require("colorbuddy.log")
+log.level = "debug"
 
 local modifiers = require("colorbuddy.modifiers").modifiers
 local util = require("colorbuddy.util")
@@ -56,33 +57,30 @@ Some Notes:
 
 --]]
 
-local color_hash = {}
-local function add_color(c)
-  log.debug("Adding color: ", c.name)
-  color_hash[string.lower(c.name)] = c
-end
+local mt_colorstore = {
+  __index = function(self, k)
+    local original_k = k
 
-local function is_existing_color(raw_key)
-  return color_hash[string.lower(raw_key)] ~= nil
-end
+    k = string.lower(k)
 
-local find_color = function(_, raw_key)
-  local key = string.lower(raw_key)
-
-  if is_existing_color(key) then
-    return color_hash[key]
-  else
-    local nvim_color = vim.api.nvim_get_color_by_name(key)
-    if nvim_color > 0 then
-      return Color.new(key, "#" .. bit.tohex(nvim_color, 6))
+    local existing = rawget(self, k)
+    if k then
+      return existing
+    else
+      local nvim_color = vim.api.nvim_get_color_by_name(k)
+      if nvim_color >= 0 then
+        return Color.new(original_k, "#" .. bit.tohex(nvim_color, 6))
+      end
     end
 
-    return {}
-  end
-end
+    return nil
+  end,
 
-local colors = {}
-setmetatable(colors, { __index = find_color })
+  __newindex = function(self, k, v)
+    rawset(self, string.lower(k), v)
+  end,
+}
+local colors = setmetatable({}, mt_colorstore)
 
 local current_color_idx = 0
 local get_next_color_number = function()
@@ -139,8 +137,15 @@ local mt_color = {
 ---@param mods any
 ---@return ColorbuddyColor
 local function create_new_color(name, base, mods)
-  if type(mods) == type({}) and mods ~= {} then
-    base = M.Color.modifier_result(base, unpack(mods))
+  -- if type(mods) == type({}) and mods ~= {} then
+  --   base = M.Color.modifier_result(base, unpack(mods))
+  -- end
+
+  assert(type(name) == "string", "name must be a string")
+  assert(HSL.is_hsl(base), "base must be an HSL value" .. vim.inspect(base))
+
+  if mods then
+    assert(type(mods) == "table", "mods must be a table or nil")
   end
 
   return setmetatable({
@@ -179,10 +184,11 @@ function Color.new(name, base, mods)
     local obj = setmetatable({
       __type__ = "color",
       name = name,
+      children = {},
       -- TODO: self.base?
     }, mt_color)
 
-    add_color(obj)
+    colors[obj.name] = obj
 
     return obj
   end
@@ -192,8 +198,8 @@ function Color.new(name, base, mods)
 
   if type(base) == "string" then
     log.debug("Generating HSL from rgb string: ", name, base)
-
     hsl = HSL:from_rgb(RGB:from_string(base))
+    print(hsl)
   elseif HSL.is_hsl(base) then
     hsl = base
   else
@@ -206,7 +212,8 @@ function Color.new(name, base, mods)
   ---@type ColorbuddyColor
   local object
 
-  if is_existing_color(name) then
+  if colors[name] then
+    log.debug("Updating existing color...", name, hsl)
     object = colors[name]
 
     -- Update object in place
@@ -221,33 +228,46 @@ function Color.new(name, base, mods)
       child:update()
     end
   else
+    log.debug("Creating new color...", name, hsl)
     object = create_new_color(name, hsl, mods)
-    add_color(object)
+    log.debug("... Created")
+    colors[object.name] = object
   end
 
   return object
 end
 
-function Color:to_rgb()
+--- Returns the effective color as a string #RRGGBB or special name
+---@return string
+function Color:to_vim()
   if special_colors[self.name] then
     return special_colors[self.name]
   end
 
-  print(vim.inspect(self.base))
-  return RGB:from_hsl(self.base):to_vim()
+  local hsl = self:to_hsl()
+  return RGB:from_hsl(hsl):to_vim()
 end
 
+--- Returns the effective HSL value
+---@return ColorbuddyHSL
 function Color:to_hsl()
-  return { self.H, self.S, self.L }
+  -- return { self.H, self.S, self.L }
+  return self:modifier_result(self.mods)
 end
 
-Color.modifier_result = function(self, ...)
+--- Apply all the modifiers on a base
+function Color:modifier_result(mods)
+  if true then
+    return self.base
+  end
+
   -- Accepts arguments of:
   --  string: The name of a modifier for a color
   --  table: the {name, [arguments]} of a modifier
-  local hsl_table = self:to_hsl()
+  local hsl_table = self.base
 
-  for i, current_modifier in ipairs({ ... }) do
+  -- TODO: add self.mods as well?
+  for i, current_modifier in ipairs(mods) do
     if type(current_modifier) == "string" then
       if modifiers[current_modifier] ~= nil then
         log.debug("Applying string: ", i, current_modifier)
@@ -272,6 +292,10 @@ Color.modifier_result = function(self, ...)
 end
 
 Color.modifier_apply = function(self, ...)
+  if true then
+    return self
+  end
+
   log.debug("Applying Modifier for:", self.name, " / ", ...)
 
   local new_hsl = self:modifier_result(...)
@@ -352,7 +376,7 @@ M.is_color_object = function(c)
 end
 
 M._clear_colors = function()
-  color_hash = {}
+  colors = setmetatable({}, mt_colorstore)
 end
 
 M.Color = Color
