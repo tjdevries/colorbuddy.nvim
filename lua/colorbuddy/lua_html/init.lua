@@ -103,10 +103,10 @@ local syn_ids_for_line = function(line, buffer_id)
 end
 
 local get_html_line = function(line)
-  ids_for_line = syn_ids_for_line(line)
+  local ids_for_line = syn_ids_for_line(line)
 
-  final_string = ""
-  for index, value in ipairs(ids_for_line) do
+  local final_string = ""
+  for _, value in ipairs(ids_for_line) do
     final_string = final_string .. highlighted.element(value)
   end
 
