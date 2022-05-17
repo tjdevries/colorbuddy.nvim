@@ -23,7 +23,7 @@ function M.colorscheme(name, light, opts)
   opts = opts or {}
 
   if not opts.disable_defaults then
-    -- require("colorbuddy.plugins")
+    require("colorbuddy.plugins")
   end
 
   local bg

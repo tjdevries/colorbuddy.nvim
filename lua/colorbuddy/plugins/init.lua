@@ -126,8 +126,9 @@ for _, v in ipairs(other_plugins) do
   individual_requirement = string.sub(relevant_path, 1, #relevant_path - 4)
   individual_requirement = string.gsub(individual_requirement, "/", ".")
 
-  if not string.find(individual_requirement, "init") then
-    log.debug("Colorbuddy.vim::Requiring: ", individual_requirement)
-    require(individual_requirement)
+  if #individual_requirement > 0 then
+    if not string.find(individual_requirement, "init") then
+      require(individual_requirement)
+    end
   end
 end

@@ -316,10 +316,6 @@ Group.link = function(name, linked_group)
 end
 
 function Group:apply()
-  if true then
-    return
-  end
-
   --[[
 
   guifg={color-name}                  *highlight-guifg*
@@ -360,7 +356,7 @@ function Group:apply()
     self.name,
     self.fg:to_vim(),
     self.bg:to_vim(),
-    self.style:to_nvim(),
+    self.style:to_vim(),
     self.guisp:to_vim()
   )
 

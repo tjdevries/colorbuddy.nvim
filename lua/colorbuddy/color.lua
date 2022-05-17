@@ -72,7 +72,7 @@ local mt_colorstore = {
       local nvim_color = vim.api.nvim_get_color_by_name(k)
       if nvim_color >= 0 then
         -- return Color.new(original_k, "#" .. bit.tohex(nvim_color, 6))
-        local new_color = create_new_color(original_k, HSL:from_rgb(RGB:from_string("#" .. bit.tohex(nvim_color, 6))))
+        local new_color = create_new_color(original_k, HSL:from_vim("#" .. bit.tohex(nvim_color, 6)))
         rawset(self, k, new_color)
         return new_color
       end
@@ -211,7 +211,7 @@ function Color.new(name, base, mods)
 
   if type(base) == "string" then
     log.debug("Generating HSL from rgb string: ", name, base)
-    hsl = HSL:from_rgb(RGB:from_string(base))
+    hsl = HSL:from_vim(base)
   elseif HSL.is_hsl(base) then
     hsl = base
   else
@@ -285,7 +285,7 @@ local function apply_modifiers(hsl, mods)
         error(string.format('Invalid modifier: "%s". Please use a valid modifier', modifier_key))
       end
     else
-      error("Unsupported modifier type")
+      -- print("Unsupported modifier type" .. vim.inspect(mod))
     end
   end
 

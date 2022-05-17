@@ -86,4 +86,17 @@ function HSL:from_rgb(rgb)
   return self:new(h * 360, s, l)
 end
 
+--- Return an HSL from a #RRGGBB string
+---@param str string
+---@return ColorbuddyHSL
+function HSL:from_vim(str)
+  return HSL:from_rgb(require("colorbuddy.data.rgb"):from_string(str))
+end
+
+--- Convert HSL to #RRGGBB string
+---@return string
+function HSL:to_vim()
+  return require("colorbuddy.data.rgb"):from_hsl(self):to_vim()
+end
+
 return HSL

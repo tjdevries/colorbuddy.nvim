@@ -95,7 +95,7 @@ Style.new = function(name)
   return obj
 end
 
-Style.to_nvim = function(self)
+Style.to_vim = function(self)
   return key_concat(self.values, ",")
 end
 

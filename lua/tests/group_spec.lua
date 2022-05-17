@@ -105,14 +105,16 @@ describe("Group object", function()
 
       -- Should work on the left
       Group.new("mixed2", groups.base1 + groups.base2 + groups.base1, colors.gray0)
-      assert.are.same((groups.base1.fg + groups.base1.fg + groups.base2.fg).H, groups.mixed2.fg.H)
-      assert.are.same((groups.base1.fg + groups.base1.fg + groups.base2.fg).S, groups.mixed2.fg.S)
-      assert.are.same((groups.base1.fg + groups.base1.fg + groups.base2.fg).L, groups.mixed2.fg.L)
+      local mixed = (groups.base1.fg + groups.base1.fg + groups.base2.fg)
+      assert.are.same(mixed:to_hsl().H, groups.mixed2.fg:to_hsl().H)
+      assert.are.same(mixed:to_hsl().S, groups.mixed2.fg:to_hsl().S)
+      assert.are.same(mixed:to_hsl().L, groups.mixed2.fg:to_hsl().L)
+
       -- Should work on the right
       Group.new("mixed3", groups.base1 + (groups.base1 + groups.base2), colors.gray0)
-      assert.are.same((groups.base1.fg + groups.base1.fg + groups.base2.fg).H, groups.mixed3.fg.H)
-      assert.are.same((groups.base1.fg + groups.base1.fg + groups.base2.fg).S, groups.mixed3.fg.S)
-      assert.are.same((groups.base1.fg + groups.base1.fg + groups.base2.fg).L, groups.mixed3.fg.L)
+      assert.are.same(mixed:to_hsl().H, groups.mixed3.fg:to_hsl().H)
+      assert.are.same(mixed:to_hsl().S, groups.mixed3.fg:to_hsl().S)
+      assert.are.same(mixed:to_hsl().L, groups.mixed3.fg:to_hsl().L)
     end)
 
     it("should handle adding and subtracting mixed groups", function()
@@ -125,9 +127,9 @@ describe("Group object", function()
       helper.eq_float(0, groups.mixed1.fg:to_hsl().L)
 
       Group.new("mixed2", colors.red, groups.base1 + groups.base2 - groups.base1)
-      helper.eq_float(groups.base2.bg.H, groups.mixed2.bg.H)
-      helper.eq_float(groups.base2.bg.S, groups.mixed2.bg.S)
-      helper.eq_float(groups.base2.bg.L, groups.mixed2.bg.L)
+      helper.eq_float(groups.base2.bg:to_hsl().H, groups.mixed2.bg:to_hsl().H)
+      helper.eq_float(groups.base2.bg:to_hsl().S, groups.mixed2.bg:to_hsl().S)
+      helper.eq_float(groups.base2.bg:to_hsl().L, groups.mixed2.bg:to_hsl().L)
     end)
   end)
 
