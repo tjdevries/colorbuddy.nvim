@@ -39,8 +39,8 @@ describe("Group object", function()
     Color.new("changing", "#ffccff")
     Group.new("copyFunc", groups.changingFunc, groups.changingFunc)
     assert.are.same(colors.changing, groups.copyfunc.fg)
-    assert.are.same("#ffccff", groups.copyfunc.fg:to_rgb())
     assert.are.same(groups.copyfunc.fg, groups.changingFunc.fg)
+    assert.are.same("#ffccff", groups.copyfunc.fg:to_vim())
   end)
 
   it("should handle mixed addition", function()
@@ -49,7 +49,7 @@ describe("Group object", function()
     Group.new("finish", groups.start + colors.adder, groups.start, groups.start)
 
     -- #f0c674 + #010101
-    assert.are.same("#f1c775", groups.finish.fg:to_rgb())
+    assert.are.same("#f1c775", groups.finish.fg:to_vim())
     assert.are_not.same(groups.start.fg, groups.finish.fg)
     assert.are.same(groups.start.bg, groups.finish.bg)
   end)
@@ -67,14 +67,13 @@ describe("Group object", function()
     Group.new("finish", groups.start + colors.adder, groups.start, groups.start)
 
     -- #f0c674 + #010101
-    assert.are.same("#f1c775", groups.finish.fg:to_rgb())
+    assert.are.same("#f1c775", groups.finish.fg:to_vim())
     assert.are_not.same(groups.start.fg, groups.finish.fg)
     assert.are.same(groups.start.bg, groups.finish.bg)
   end)
 
   describe("Group.default", function()
-    it("should send a default highlight link", function()
-    end)
+    it("should send a default highlight link", function() end)
 
     it("should not overwrite an existing highlight", function()
       Group.new("test", colors.yellow, colors.gray0)
@@ -121,9 +120,9 @@ describe("Group object", function()
       Group.new("base2", colors.gray0, colors.red)
 
       Group.new("mixed1", groups.base1 - groups.base1, colors.gray0)
-      helper.eq_float(0, groups.mixed1.fg.H)
-      helper.eq_float(0, groups.mixed1.fg.S)
-      helper.eq_float(0, groups.mixed1.fg.L)
+      helper.eq_float(0, groups.mixed1.fg:to_hsl().H)
+      helper.eq_float(0, groups.mixed1.fg:to_hsl().S)
+      helper.eq_float(0, groups.mixed1.fg:to_hsl().L)
 
       Group.new("mixed2", colors.red, groups.base1 + groups.base2 - groups.base1)
       helper.eq_float(groups.base2.bg.H, groups.mixed2.bg.H)

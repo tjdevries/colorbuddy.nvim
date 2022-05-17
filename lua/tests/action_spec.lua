@@ -47,6 +47,11 @@ describe("Actions", function()
     --- NOTE: not twice as light, just one time. We didn't update twice
     assert.are.same(precision(parent_L), precision(colors.parent:to_hsl().L - 0.1))
     assert.are.same(precision(child_L), precision(colors.child:to_hsl().L - 0.1))
+
+    a.darker()
+
+    assert.are.same(precision(parent_L), precision(colors.parent:to_hsl().L))
+    assert.are.same(precision(child_L), precision(colors.child:to_hsl().L))
   end)
 
   it("should not update children twice, from locals", function()

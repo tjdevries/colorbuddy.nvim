@@ -42,9 +42,9 @@ end
 --- Create a new RGB type from an HSL type
 ---@param hsl ColorbuddyHSL
 function RGB:from_hsl(hsl)
-  local h = hsl.H
-  local s = hsl.S
-  local l = hsl.L
+  local h = assert(hsl.H, "Must have H")
+  local s = assert(hsl.S, "Must have S")
+  local l = assert(hsl.L, "Must have L")
 
   -- h = (h % 360) / 360
   h = (h / 360) % 1

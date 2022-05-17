@@ -30,7 +30,7 @@ local special_colors = {
 ---@field name string: The name of the color (case insensitive)
 ---@field base ColorbuddyHSL: The base color, will be modified by `mods`.
 ---@field children Map<ColorbuddyColor, boolean>: The children of the color
----@field parent ColorbuddyColor?: Possible color
+---@field parent ColorbuddyColor|nil: Possible color
 ---@field mods ColorbuddyMod[]: List of modifications applied to this color
 ---[[ Modifiers, wish it was auto generated ]]
 ---@field light function: Ligthen the current color and children
@@ -95,14 +95,22 @@ end
 
 local color_arithmetic = function(operation)
   return function(left, right)
-    assert(false, "color_arithmetic: not currently implemented")
-    return create_new_color(nil, unpack(modifiers[operation](left.H, left.S, left.L, right, 1)))
+    return create_new_color(
+      left.name .. "-" .. tostring(get_next_color_number()),
+      modifiers[operation](left:to_hsl(), right, 1)
+    )
   end
 end
+
+local banned_access = { H = true, S = true, L = true }
 
 local mt_color = {
   __type__ = "color",
   __index = function(self, key)
+    if banned_access[key] then
+      error("BANNED ACCESS. BREAKING CHANGES:" .. key)
+    end
+
     if Color[key] ~= nil then
       return Color[key]
     end
@@ -146,14 +154,11 @@ create_new_color = function(name, base, mods)
   --   base = M.Color.modifier_result(base, unpack(mods))
   -- end
 
-  assert(type(name) == "string", "name must be a string")
-  assert(HSL.is_hsl(base), "base must be an HSL value" .. vim.inspect(base))
-
-  if mods then
-    assert(type(mods) == "table", "mods must be a table or nil")
-  end
-
   mods = mods or {}
+
+  assert(type(name) == "string", "name must be a string")
+  assert(type(mods) == "table", "mods must be a table or nil")
+  assert(HSL.is_hsl(base), "base must be an HSL value" .. vim.inspect(base))
 
   return setmetatable({
     __type__ = "color",
@@ -169,7 +174,7 @@ create_new_color = function(name, base, mods)
     -- TODO: Maybe make more than one of these?
     -- The parent of this object
     --  When "self" is changed, we wait until these have been updated
-    parent = {},
+    parent = nil,
   }, mt_color)
 end
 
@@ -215,6 +220,7 @@ function Color.new(name, base, mods)
 
   -- Get an existing color if possible, so that we can update any references to this color
   -- when you use something like 'Color.new('red', ...)' twice
+  mods = mods or {}
 
   ---@type ColorbuddyColor
   local object
@@ -289,24 +295,40 @@ end
 --- Returns the effective HSL value
 ---@return ColorbuddyHSL
 function Color:to_hsl()
-  return apply_modifiers(self.base, self.mods)
+  if not self.mods then
+    error("Must have mods:" .. vim.inspect(self))
+  end
+
+  -- Collect all the parent mods, then ours and then apply
+  local mods = {}
+  local parent = self.parent
+  while parent do
+    vim.list_extend(mods, parent.mods)
+    parent = parent.parent
+  end
+
+  vim.list_extend(mods, self.mods)
+
+  return apply_modifiers(self.base, mods)
 end
 
 --- Apply modifiers to the current color and its children
 ---@param mods ColorbuddyMod[]: List of modifications
 ---@return table: List of colors updated (to prevent modifying multiple times)
 function Color:modifier_apply(mods, updated)
-  log.debug("Applying Modifier for:", self.name, " / ", mods)
+  updated = updated or {}
+  if updated[self] then
+    return updated
+  end
 
+  log.debug("Applying Modifier for:", self.name, " / ", mods)
+  updated[self] = true
   for _, mod in ipairs(mods) do
     table.insert(self.mods, mod)
   end
 
-  updated = updated or {}
-  updated[self] = true
-
   for child, _ in pairs(self.children) do
-    child:modifier_apply(mods, updated)
+    child:modifier_apply({}, updated)
   end
 
   return updated
@@ -316,8 +338,6 @@ end
 ---@param updated table|nil: A map of colors that have been updated.
 ---@return table: A map of colors that have been updated (can be `updated` if passed)
 function Color:update(updated)
-  error("should not call update")
-
   if updated == nil then
     updated = {}
   end
@@ -328,12 +348,12 @@ function Color:update(updated)
 
   updated[self] = true
 
-  self.H = self.parent.H
-  self.S = self.parent.S
-  self.L = self.parent.L
+  if self.parent then
+    self.base = self.parent.base
+  end
 
-  if type(self.mods) == type({}) then
-    self:modifier_apply(unpack(self.mods))
+  for child, _ in pairs(self.children) do
+    child:update(updated)
   end
 
   return updated
@@ -350,18 +370,18 @@ end
 ---@return ColorbuddyColor
 function Color:new_child(name, mods)
   if self.children[string.lower(name)] ~= nil then
-    print("ERROR: must not use same name")
+    error("new_child must not re-use an existing name?")
     return nil
   end
 
   log.debug("New Child: ", name, "with", mods)
 
   -- TODO: This might not be right, because it won't apply original modifiers to base
-  local resulting_mods = {}
-  vim.list_extend(resulting_mods, self.mods)
-  vim.list_extend(resulting_mods, mods)
+  -- local resulting_mods = {}
+  -- vim.list_extend(resulting_mods, self.mods)
+  -- vim.list_extend(resulting_mods, mods)
 
-  local kid = Color.new(name, self.base, resulting_mods)
+  local kid = Color.new(name, self.base, mods)
   self:_add_child(kid)
 
   return kid

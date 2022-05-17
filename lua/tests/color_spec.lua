@@ -75,11 +75,11 @@ describe("Color class", function()
   end)
 
   it("should update children when parent is updated", function()
-    local test_color = Color.new("fooBar", HSL:new(180, 0.5, 0.5))
-    local child_color = test_color:new_child("kiddo", { "dark" })
-    local light_color = test_color:new_child("lighter", { "light" })
+    local base_color = Color.new("fooBar", HSL:new(180, 0.5, 0.5))
+    local child_color = base_color:new_child("kiddo", { "dark" })
+    local light_color = base_color:new_child("lighter", { "light" })
 
-    test_color:modifier_apply({ "dark" })
+    base_color:modifier_apply({ "dark" })
 
     eq(0.5 - 0.1 - 0.1, child_color:to_hsl().L)
     eq(0.5 + 0.1 - 0.1, light_color:to_hsl().L)

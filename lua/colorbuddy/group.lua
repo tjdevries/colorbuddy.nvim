@@ -1,6 +1,5 @@
 local execute = require("colorbuddy.execute")
 local log = require("colorbuddy.log")
-local util = require("colorbuddy.util")
 
 local colors = require("colorbuddy.color").colors
 local styles = require("colorbuddy.style").styles
@@ -8,13 +7,7 @@ local styles = require("colorbuddy.style").styles
 local is_color_object = require("colorbuddy.color").is_color_object
 local is_style_object = require("colorbuddy.style").is_style_object
 
-local is_group_object = function(g)
-  if g == nil then
-    return false
-  end
-
-  return g.__type__ == "group"
-end
+local M = {}
 
 local _group_hash = {}
 local groups = setmetatable({}, {
@@ -40,7 +33,14 @@ local group_handle_arithmetic = function(operation)
       __type__ = "mixed",
       __operation__ = operation,
     }
+
     -- TODO: Determine if this is actually required or not
+    -- local MixedGroup = setmetatable({}, {
+    --   __metatable = {},
+    --
+    --   __add = group_handle_arithmetic("+"),
+    --   __sub = group_handle_arithmetic("-"),
+    -- })
     -- setmetatable(mixed, getmetatable(MixedGroup))
 
     mixed.parents = {
@@ -86,13 +86,6 @@ local is_mixed_object = function(m)
   return m.__type__ == "mixed"
 end
 
-local MixedGroup = setmetatable({}, {
-  __metatable = {},
-
-  __add = group_handle_arithmetic("+"),
-  __sub = group_handle_arithmetic("-"),
-})
-
 local Group = {}
 Group.__index = Group
 Group.__add = group_handle_arithmetic("+")
@@ -126,7 +119,7 @@ Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
     right = mixed.right,
   }
 
-  if is_group_object(mixed.left) then
+  if M.is_group_object(mixed.left) then
     left_item = mixed.left[group_attr]
   elseif is_mixed_object(mixed.left) then
     left_item = Group.apply_mixed_arithmetic(handler, group_attr, mixed.left)
@@ -134,7 +127,7 @@ Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
     left_item = mixed.left
   end
 
-  if is_group_object(mixed.right) then
+  if M.is_group_object(mixed.right) then
     right_item = mixed.right[group_attr]
   elseif is_mixed_object(mixed.right) then
     right_item = Group.apply_mixed_arithmetic(handler, group_attr, mixed.right)
@@ -153,7 +146,7 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
   end
 
   -- Return the property of the group object
-  if is_group_object(val) then
+  if M.is_group_object(val) then
     return val[property], val
   end
 
@@ -420,9 +413,21 @@ local _clear_groups = function()
   _group_hash = {}
 end
 
-return {
-  groups = groups,
-  Group = Group,
-  is_group_object = is_group_object,
-  _clear_groups = _clear_groups,
-}
+M.is_group_object = function(g)
+  if g == nil or type(g) ~= "table" then
+    return false
+  end
+
+  -- TODO(__type__): Clean this up as well
+  if getmetatable(g) == Group then
+    return true
+  end
+
+  return g.__type__ == "group"
+end
+
+M.groups = groups
+M.Group = Group
+M._clear_groups = _clear_groups
+
+return M
