@@ -2,7 +2,8 @@ local a = require("colorbuddy.actions")
 
 local Color = require("colorbuddy.color").Color
 local colors = require("colorbuddy.color").colors
--- local log = require("colorbuddy.log")
+local log = require("colorbuddy.log")
+log.level = "debug"
 
 local helper = require("tests.helper")
 
@@ -19,27 +20,46 @@ describe("Actions", function()
     Color.new("this", "#121212")
     Color.new("that", "#343434")
 
-    local original_this_L = colors.this.L
-    local original_that_L = colors.that.L
+    local og_this = colors.this:to_hsl()
+    local og_that = colors.that:to_hsl()
 
     a.lighter()
 
+    local new_this = colors.this:to_hsl()
+    local new_that = colors.that:to_hsl()
+
+    assert.are.same(colors.this.mods, { "light" })
+
     -- assert.are.same("expected", "actual")
-    assert.are.same(precision(original_that_L), precision(colors.that.L - 0.1))
-    assert.are.same(precision(original_this_L), precision(colors.this.L - 0.1))
+    assert.are.same(precision(og_that.L), precision(new_that.L - 0.1))
+    assert.are.same(precision(og_this.L), precision(new_this.L - 0.1))
   end)
 
-  -- it("should not update children twice", function()
-  --   Color.new("parent", "#343434")
-  --   colors.parent:new_child("child", "light")
-  --
-  --   local parent_L = colors.parent.L
-  --   local child_L = colors.child.L
-  --
-  --   a.lighter()
-  --
-  --   assert.are.same(precision(parent_L), precision(colors.parent.L - 0.1))
-  --   --- Note, not twice as light, just one time. We didn't update twice
-  --   assert.are.same(precision(child_L), precision(colors.child.L - 0.1))
-  -- end)
+  it("should not update children twice, from module", function()
+    Color.new("parent", "#343434")
+    colors.parent:new_child("child", { "light" })
+
+    local parent_L = colors.parent:to_hsl().L
+    local child_L = colors.child:to_hsl().L
+
+    a.lighter()
+
+    --- NOTE: not twice as light, just one time. We didn't update twice
+    assert.are.same(precision(parent_L), precision(colors.parent:to_hsl().L - 0.1))
+    assert.are.same(precision(child_L), precision(colors.child:to_hsl().L - 0.1))
+  end)
+
+  it("should not update children twice, from locals", function()
+    local parent = Color.new("parent", "#343434")
+    parent:new_child("child", { "light" })
+
+    local parent_L = colors.parent:to_hsl().L
+    local child_L = colors.child:to_hsl().L
+
+    a.lighter()
+
+    --- NOTE: not twice as light, just one time. We didn't update twice
+    assert.are.same(precision(parent_L), precision(colors.parent:to_hsl().L - 0.1))
+    assert.are.same(precision(child_L), precision(colors.child:to_hsl().L - 0.1))
+  end)
 end)

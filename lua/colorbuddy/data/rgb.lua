@@ -51,7 +51,7 @@ function RGB:from_hsl(hsl)
 
   if s == 0 then
     -- Achromatic result
-    return l, l, l
+    return RGB:new(l, l, l)
   end
 
   local m1, m2
@@ -83,15 +83,21 @@ function RGB:from_hsl(hsl)
     return p
   end
 
-  return util.clamp(hue_to_rgb(m1, m2, h + 1 / 3), 0, 1),
+  return RGB:new(
+    util.clamp(hue_to_rgb(m1, m2, h + 1 / 3), 0, 1),
     util.clamp(hue_to_rgb(m1, m2, h), 0, 1),
     util.clamp(hue_to_rgb(m1, m2, h - 1 / 3), 0, 1)
+  )
+end
+
+local round = function(x)
+  return math.floor(x + 0.5)
 end
 
 --- Take an RGB value and convert a vim value of #RRGGBB
 function RGB:to_vim()
   -- TODO(limits)
-  return string.format("#02x02x02x", self.r * 255, self.g * 255, self.b * 255)
+  return string.format("#%02x%02x%02x", round(self.r * 255), round(self.g * 255), round(self.b * 255))
 end
 
 return RGB

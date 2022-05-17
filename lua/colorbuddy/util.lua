@@ -187,4 +187,8 @@ util.fmt_percent = function(val)
   return string.format("%0.2f%%", val * 100)
 end
 
+util.round = function(val)
+  return math.floor(val + 0.5)
+end
+
 return util

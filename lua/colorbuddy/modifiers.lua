@@ -3,20 +3,36 @@
 local log = require("colorbuddy.log")
 local util = require("colorbuddy.util")
 local HSL = require("colorbuddy.data.hsl")
+local RGB = require("colorbuddy.data.rgb")
 
-local operator_intensity = function(operand)
+local operator_intensity = function(operator)
   local supported_metamethods = {
     ["-"] = true,
     ["+"] = true,
   }
-  local operand_metamethod = supported_metamethods[operand]
+  local operand_metamethod = supported_metamethods[operator]
 
   if operand_metamethod == nil then
     return nil
   end
 
-  return function(hsl, color_object, intensity)
-    if color_object == nil or true then
+  local doit = function(origin, mixin, intensity)
+    if operator == "-" then
+      return util.clamp(origin - (intensity * mixin), 0, 1)
+    elseif operator == "+" then
+      return util.clamp(origin + (intensity * mixin), 0, 1)
+    end
+
+    error("unsupported operator")
+  end
+
+  --- Modifier function
+  ---@param hsl ColorbuddyHSL
+  ---@param operand ColorbuddyColor
+  ---@param intensity number|nil
+  ---@return ColorbuddyHSL
+  return function(hsl, operand, intensity)
+    if operand == nil then
       return hsl
     end
 
@@ -24,21 +40,17 @@ local operator_intensity = function(operand)
       intensity = 1.0
     end
 
-    local original = { util.hsl_to_rgb(H, S, L) }
-    local mixin = { util.hsl_to_rgb(color_object.H, color_object.S, color_object.L) }
+    local original = RGB:from_hsl(hsl)
+    local operand_hsl = operand:to_hsl()
+    local mixin = RGB:from_hsl(operand_hsl)
 
-    local result_rgb = { 0, 0, 0 }
-    for i, _ in ipairs(result_rgb) do
-      if operand == "-" then
-        result_rgb[i] = util.clamp(original[i] - (intensity * mixin[i]), 0, 1)
-      elseif operand == "+" then
-        result_rgb[i] = util.clamp(original[i] + (intensity * mixin[i]), 0, 1)
-      end
+    local resulting_rgb = RGB:new(
+      doit(original.r, mixin.r, intensity),
+      doit(original.g, mixin.g, intensity),
+      doit(original.b, mixin.b, intensity)
+    )
 
-      log.debug("subt:", original[i], mixin[i], "res", result_rgb[i])
-    end
-
-    return { util.rgb_to_hsl(unpack(result_rgb)) }
+    return HSL:from_rgb(resulting_rgb)
   end
 end
 

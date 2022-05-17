@@ -176,7 +176,7 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
 
   local val_repr = tostring(val)
   if type(val) == "table" then
-    val_repr = "{table}: " .. tostring(val) .. table.concat(val, ",") .. " / " .. util.key_concat(val, ",")
+    val_repr = vim.inspect(val)
   end
 
   print(debug.traceback())
@@ -191,7 +191,6 @@ Group.__private_create = function(name, fg, bg, style, guisp, blend, default, ba
   name = string.lower(name)
 
   local handler = {}
-
   local fg_color, fg_parent = Group.handle_group_argument(
     handler,
     fg,
@@ -324,6 +323,10 @@ Group.link = function(name, linked_group)
 end
 
 function Group:apply()
+  if true then
+    return
+  end
+
   --[[
 
   guifg={color-name}                  *highlight-guifg*
@@ -350,11 +353,11 @@ function Group:apply()
     vim.api.nvim_command(string.format("highlight %s NONE", self.name))
   end
 
-  local ok = pcall(self.fg.to_vim, self.fg)
-  if not ok then
-    error("BROKEN:" .. vim.inspect(self.fg))
-    return
-  end
+  -- local ok = pcall(self.fg.to_vim, self.fg)
+  -- if not ok then
+  --   error("BROKEN:" .. vim.inspect(self.fg))
+  --   return
+  -- end
 
   -- Apply the new highlighting
   local command = string.format(
