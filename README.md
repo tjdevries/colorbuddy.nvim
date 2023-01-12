@@ -1,5 +1,7 @@
 # colorbuddy.nvim
 
+NOTE: now requires neovim 0.8
+
 A colorscheme helper for Neovim.
 
 Written in Lua! Quick & Easy Color Schemes :smile:

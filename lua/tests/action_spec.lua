@@ -2,8 +2,6 @@ local a = require("colorbuddy.actions")
 
 local Color = require("colorbuddy.color").Color
 local colors = require("colorbuddy.color").colors
-local log = require("colorbuddy.log")
-log.level = "debug"
 
 local helper = require("tests.helper")
 

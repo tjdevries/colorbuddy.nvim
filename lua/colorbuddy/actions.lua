@@ -1,4 +1,3 @@
-local Color = require("colorbuddy.color").Color
 local colors = require("colorbuddy.color").colors
 
 local actions = {}

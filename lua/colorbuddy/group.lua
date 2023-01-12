@@ -104,7 +104,7 @@ Group.__tostring = function(self)
   )
 end
 
-Group._defaults = {
+local group_defaults = {
   fg = colors.none,
   bg = colors.none,
   style = styles.none,
@@ -141,8 +141,8 @@ end
 Group.handle_group_argument = function(handler, val, property, valid_object_function, err_string)
   -- TODO: Keep track of the dependencies here?
   -- If the value is nil, and we have a default, just use that instead
-  if val == nil and Group._defaults[property] ~= nil then
-    return Group._defaults[property]
+  if val == nil and group_defaults[property] ~= nil then
+    return group_defaults[property]
   end
 
   -- Return the property of the group object
@@ -184,49 +184,29 @@ Group.__private_create = function(name, fg, bg, style, guisp, blend, default, ba
   name = string.lower(name)
 
   local handler = {}
-  local fg_color, fg_parent = Group.handle_group_argument(
-    handler,
-    fg,
-    "fg",
-    is_color_object,
-    "Not a valid foreground color"
-  )
+  local fg_color, fg_parent =
+    Group.handle_group_argument(handler, fg, "fg", is_color_object, "Not a valid foreground color")
 
   if not is_color_object(fg_color) then
     error("Bad foreground color: " .. debug.traceback())
   end
 
-  local bg_color, bg_parent = Group.handle_group_argument(
-    handler,
-    bg,
-    "bg",
-    is_color_object,
-    "Not a valid background color"
-  )
+  local bg_color, bg_parent =
+    Group.handle_group_argument(handler, bg, "bg", is_color_object, "Not a valid background color")
 
   if not is_color_object(bg_color) then
     error("Bad background color: " .. debug.traceback())
   end
 
-  local guisp_color, guisp_parent = Group.handle_group_argument(
-    handler,
-    guisp,
-    "guisp",
-    is_color_object,
-    "Not a valid guisp color"
-  )
+  local guisp_color, guisp_parent =
+    Group.handle_group_argument(handler, guisp, "guisp", is_color_object, "Not a valid guisp color")
 
   if not is_color_object(guisp_color) then
     error("Bad guisp color: " .. vim.inspect(guisp_color))
   end
 
-  local style_style, style_parent = Group.handle_group_argument(
-    handler,
-    style,
-    "style",
-    is_style_object,
-    "Not a valid style"
-  )
+  local style_style, style_parent =
+    Group.handle_group_argument(handler, style, "style", is_style_object, "Not a valid style")
 
   local obj
   if Group.is_existing_group(name) then
@@ -342,29 +322,30 @@ function Group:apply()
     vim.api.nvim_command(string.format("highlight %s NONE", self.name))
   end
 
-  -- local ok = pcall(self.fg.to_vim, self.fg)
-  -- if not ok then
-  --   error("BROKEN:" .. vim.inspect(self.fg))
-  --   return
+  -- Apply the new highlighting
+  -- local command = string.format(
+  --   "highlight%s %s %s guifg=%s guibg=%s gui=%s guisp=%s",
+  --   execute.fif(self.__bang__, "!", ""),
+  --   execute.fif(self.__default__, "default", ""),
+  --   self.name,
+  --   self.fg:to_vim(),
+  --   self.bg:to_vim(),
+  --   self.style:to_vim(),
+  --   self.guisp:to_vim()
+  -- )
+  --
+  -- if self.blend then
+  --   command = command .. string.format(" blend=%s", self.blend)
   -- end
 
-  -- Apply the new highlighting
-  local command = string.format(
-    "highlight%s %s %s guifg=%s guibg=%s gui=%s guisp=%s",
-    execute.fif(self.__bang__, "!", ""),
-    execute.fif(self.__default__, "default", ""),
-    self.name,
-    self.fg:to_vim(),
-    self.bg:to_vim(),
-    self.style:to_vim(),
-    self.guisp:to_vim()
-  )
+  -- vim.api.nvim_command(command)
 
-  if self.blend then
-    command = command .. string.format(" blend=%s", self.blend)
-  end
+  local hl = vim.tbl_extend("error", {
+    fg = self.fg:to_vim(),
+    bg = self.bg:to_vim(),
+  }, self.style:keys())
 
-  vim.api.nvim_command(command)
+  vim.api.nvim_set_hl(0, self.name, hl)
 end
 
 Group.update = function(self, updated)

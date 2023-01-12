@@ -8,7 +8,7 @@ local g = require("colorbuddy.group").groups
 
 local s = require("colorbuddy.style").styles
 
-local background_string = "#282c34"
+local background_string = "#111111"
 Color.new("background", background_string)
 
 Color.new("superwhite", "#E0E0E0")
@@ -21,10 +21,11 @@ Group.new("InvNormal", c.gray0, c.gray5)
 Group.new("NormalFloat", g.normal.fg:light(), g.normal.bg:dark())
 Group.new("FloatBorder", c.gray0:light(), g.NormalFloat)
 
-Group.new("LineNr", c.gray3, c.gray1)
 Group.new("EndOfBuffer", c.gray3)
 
-Group.new("SignColumn", c.gray3, c.gray1)
+Group.new("LineNr", c.gray1, c.gray0)
+Group.new("SignColumn", g.LineNr.fg:light(), g.LineNr)
+
 --2 Cursor
 Group.new("Cursor", g.normal.bg, g.normal.fg)
 Group.new("CursorLine", nil, g.normal.bg:light(0.05))
@@ -106,6 +107,16 @@ Group.new("vimAutoloadFunction", g.Function.fg:dark():dark(), g.Function, g.Func
 
 --2 MatchParen
 Group.new("MatchParen", c.cyan)
+
+Group.new("@field", c.red)
+Group.new("@include", g.include)
+Group.new("@constant", c.blue)
+Group.new("@variable", g.Normal)
+Group.new("@variable.builtin", c.yellow)
+Group.new("@function", g.Function)
+Group.new("@namespace", c.blue:light())
+
+Group.new("graphqlTSProperty", c.blue)
 
 local path_sep = vim.fn.has("win32") ~= 0 and "\\" or "/"
 

@@ -414,7 +414,7 @@ M.Color = Color
 M.colors = colors
 
 Color.new("none")
-Color.new("gray0", "#282c34")
+Color.new("gray0", "#111111")
 Color.new("gray1", "#282a2e")
 Color.new("gray2", "#373b41")
 Color.new("gray3", "#969896")
