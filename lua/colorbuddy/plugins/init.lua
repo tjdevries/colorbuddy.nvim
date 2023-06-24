@@ -120,7 +120,7 @@ for _, v in ipairs(other_plugins) do
   local complete_path = vim.fn.substitute(vim.fn.fnamemodify(v, ":p"), "\\", "/", "g")
 
   local path_starts = string.find(complete_path, "colorbuddy/plugins", nil, true)
-  local relevant_path = string.sub(v, path_starts)
+  local relevant_path = string.sub(complete_path, path_starts)
 
   local individual_requirement
   individual_requirement = string.sub(relevant_path, 1, #relevant_path - 4)
