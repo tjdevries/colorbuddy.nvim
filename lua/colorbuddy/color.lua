@@ -18,14 +18,6 @@ local M = {}
 ---@class ColorbuddyMod
 local _mod = {}
 
-local special_colors = {
-  none = "none",
-  bg = "bg",
-  background = "background",
-  fg = "fg",
-  foreground = "foreground",
-}
-
 ---@class ColorbuddyColor
 ---@field name string: The name of the color (case insensitive)
 ---@field base ColorbuddyHSL: The base color, will be modified by `mods`
@@ -189,9 +181,8 @@ function Color.new(name, base, mods)
   --  H, S, L
   --  children: A table of all the colors that depend on this color
 
-  if base == nil then
-    assert(special_colors[name], "Only allowed to pass `nil` color when special")
-
+  -- Special case `none`, as it removes the value
+  if name == "none" then
     -- TODO: Change this to add_special_color
     local obj = setmetatable({
       __type__ = "color",
@@ -253,8 +244,9 @@ end
 --- Returns the effective color as a string #RRGGBB or special name
 ---@return string
 function Color:to_vim()
-  if special_colors[self.name] then
-    return special_colors[self.name]
+  -- None must be sent back exactly as "none"
+  if self.name == "none" then
+    return self.name
   end
 
   local hsl = self:to_hsl()
