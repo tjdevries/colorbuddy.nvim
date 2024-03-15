@@ -2,22 +2,20 @@
 -- @author: TJ DeVries
 -- Inspired originally by @tweekmonster's colorpal.vim
 
-local groups = require("colorbuddy.group").groups
-local colors = require("colorbuddy.color").colors
+local group = require("colorbuddy.group")
+local color = require("colorbuddy.color")
 
 local M = {
-  groups = groups,
-  Group = require("colorbuddy.group").Group,
-  colors = colors,
-  Color = require("colorbuddy.color").Color,
+  groups = group.groups,
+  Group = group.Group,
+  colors = color.colors,
+  Color = color.Color,
   styles = require("colorbuddy.style").styles,
 }
 
 -- Returns the most common and useful items.
 --  Probably don't even want this anymore... oh well.
-function M.setup()
-  return M.Color, M.colors, M.Group, M.groups, M.styles
-end
+function M.setup() end
 
 function M.colorscheme(name, light, opts)
   opts = opts or {}
@@ -36,11 +34,6 @@ function M.colorscheme(name, light, opts)
   vim.api.nvim_command("set termguicolors")
   vim.api.nvim_command(string.format('let g:colors_name = "%s"', name))
   vim.api.nvim_command(string.format("set background=%s", bg))
-
-  local ok = pcall(require, name)
-  if not ok then
-    vim.api.nvim_command(string.format("colorscheme %s", name))
-  end
 end
 
 return M

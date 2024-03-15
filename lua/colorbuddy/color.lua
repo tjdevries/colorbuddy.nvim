@@ -28,8 +28,8 @@ local special_colors = {
 
 ---@class ColorbuddyColor
 ---@field name string: The name of the color (case insensitive)
----@field base ColorbuddyHSL: The base color, will be modified by `mods`.
----@field children Map<ColorbuddyColor, boolean>: The children of the color
+---@field base ColorbuddyHSL: The base color, will be modified by `mods`
+---@field children table<ColorbuddyColor, boolean>: The children of the color
 ---@field parent ColorbuddyColor|nil: Possible color
 ---@field mods ColorbuddyMod[]: List of modifications applied to this color
 ---[[ Modifiers, wish it was auto generated ]]
@@ -181,7 +181,7 @@ end
 --- Create a new color
 ---@param name string: Name of the new child
 ---@param base string|ColorbuddyHSL|ColorbuddyColor: The base color information
----@param mods ColorbuddyMod[]: List of modifications
+---@param mods? ColorbuddyMod[]: List of modifications
 ---@return ColorbuddyColor
 function Color.new(name, base, mods)
   -- Color:

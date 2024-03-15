@@ -1,6 +1,6 @@
 # colorbuddy.nvim
 
-NOTE: now requires neovim 0.8
+NOTE: now requires neovim 0.9 or nightly
 
 A colorscheme helper for Neovim.
 
@@ -17,7 +17,19 @@ You can see one example for gruvbox-esque styles [here](https://github.com/tjdev
 Example:
 
 ```lua
-local Color, colors, Group, groups, styles = require('colorbuddy').setup()
+-- file: colors/my-colorscheme-name.lua
+
+local colorbuddy = require('colorbuddy')
+
+-- Set up your custom colorscheme if you want
+colorbuddy.colorscheme("my-colorscheme-name")
+
+-- And then modify as you like
+local Color = colorbuddy.Color
+local colors = colorbuddy.colors
+local Group = colorbuddy.Group
+local groups = colorbuddy.groups
+local styles = colorbuddy.styles
 
 -- Use Color.new(<name>, <#rrggbb>) to create new colors
 -- They can be accessed through colors.<name>
@@ -32,15 +44,6 @@ Group.new('luaFunctionCall' , groups.Function    , groups.Function   , groups.Fu
 
 -- Define highlights in relative terms of other colors
 Group.new('Error'           , colors.red:light() , nil               , s.bold)
-```
-
-
-### Advanced Examples
-
-```lua
--- Optionally, you can just use the globals created when calling `setup()`
--- No need to declare new locals
-require('colorbuddy').setup()
 
 -- If you want multiple styles, just add them!
 Group.new('italicBoldFunction', colors.green, groups.Function, styles.bold + styles.italic)
