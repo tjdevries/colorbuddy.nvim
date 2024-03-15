@@ -1,6 +1,5 @@
 local execute = require("colorbuddy.execute")
 local log = require("colorbuddy.log")
-local util = require("colorbuddy.util")
 
 local colors = require("colorbuddy.color").colors
 local styles = require("colorbuddy.style").styles
@@ -8,13 +7,7 @@ local styles = require("colorbuddy.style").styles
 local is_color_object = require("colorbuddy.color").is_color_object
 local is_style_object = require("colorbuddy.style").is_style_object
 
-local is_group_object = function(g)
-  if g == nil then
-    return false
-  end
-
-  return g.__type__ == "group"
-end
+local M = {}
 
 local _group_hash = {}
 local groups = setmetatable({}, {
@@ -40,7 +33,14 @@ local group_handle_arithmetic = function(operation)
       __type__ = "mixed",
       __operation__ = operation,
     }
+
     -- TODO: Determine if this is actually required or not
+    -- local MixedGroup = setmetatable({}, {
+    --   __metatable = {},
+    --
+    --   __add = group_handle_arithmetic("+"),
+    --   __sub = group_handle_arithmetic("-"),
+    -- })
     -- setmetatable(mixed, getmetatable(MixedGroup))
 
     mixed.parents = {
@@ -86,13 +86,6 @@ local is_mixed_object = function(m)
   return m.__type__ == "mixed"
 end
 
-local MixedGroup = setmetatable({}, {
-  __metatable = {},
-
-  __add = group_handle_arithmetic("+"),
-  __sub = group_handle_arithmetic("-"),
-})
-
 local Group = {}
 Group.__index = Group
 Group.__add = group_handle_arithmetic("+")
@@ -111,7 +104,7 @@ Group.__tostring = function(self)
   )
 end
 
-Group._defaults = {
+local group_defaults = {
   fg = colors.none,
   bg = colors.none,
   style = styles.none,
@@ -126,7 +119,7 @@ Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
     right = mixed.right,
   }
 
-  if is_group_object(mixed.left) then
+  if M.is_group_object(mixed.left) then
     left_item = mixed.left[group_attr]
   elseif is_mixed_object(mixed.left) then
     left_item = Group.apply_mixed_arithmetic(handler, group_attr, mixed.left)
@@ -134,7 +127,7 @@ Group.apply_mixed_arithmetic = function(handler, group_attr, mixed)
     left_item = mixed.left
   end
 
-  if is_group_object(mixed.right) then
+  if M.is_group_object(mixed.right) then
     right_item = mixed.right[group_attr]
   elseif is_mixed_object(mixed.right) then
     right_item = Group.apply_mixed_arithmetic(handler, group_attr, mixed.right)
@@ -148,12 +141,12 @@ end
 Group.handle_group_argument = function(handler, val, property, valid_object_function, err_string)
   -- TODO: Keep track of the dependencies here?
   -- If the value is nil, and we have a default, just use that instead
-  if val == nil and Group._defaults[property] ~= nil then
-    return Group._defaults[property]
+  if val == nil and group_defaults[property] ~= nil then
+    return group_defaults[property]
   end
 
   -- Return the property of the group object
-  if is_group_object(val) then
+  if M.is_group_object(val) then
     return val[property], val
   end
 
@@ -176,7 +169,7 @@ Group.handle_group_argument = function(handler, val, property, valid_object_func
 
   local val_repr = tostring(val)
   if type(val) == "table" then
-    val_repr = "{table}: " .. tostring(val) .. table.concat(val, ",") .. " / " .. util.key_concat(val, ",")
+    val_repr = vim.inspect(val)
   end
 
   print(debug.traceback())
@@ -191,7 +184,6 @@ Group.__private_create = function(name, fg, bg, style, guisp, blend, default, ba
   name = string.lower(name)
 
   local handler = {}
-
   local fg_color, fg_parent =
     Group.handle_group_argument(handler, fg, "fg", is_color_object, "Not a valid foreground color")
 
@@ -210,7 +202,7 @@ Group.__private_create = function(name, fg, bg, style, guisp, blend, default, ba
     Group.handle_group_argument(handler, guisp, "guisp", is_color_object, "Not a valid guisp color")
 
   if not is_color_object(guisp_color) then
-    error("Bad guisp color: " .. debug.traceback())
+    error("Bad guisp color: " .. vim.inspect(guisp_color))
   end
 
   local style_style, style_parent =
@@ -331,22 +323,29 @@ function Group:apply()
   end
 
   -- Apply the new highlighting
-  local command = string.format(
-    "highlight%s %s %s guifg=%s guibg=%s gui=%s guisp=%s",
-    execute.fif(self.__bang__, "!", ""),
-    execute.fif(self.__default__, "default", ""),
-    self.name,
-    self.fg:to_rgb(),
-    self.bg:to_rgb(),
-    self.style:to_nvim(),
-    self.guisp:to_rgb()
-  )
+  -- local command = string.format(
+  --   "highlight%s %s %s guifg=%s guibg=%s gui=%s guisp=%s",
+  --   execute.fif(self.__bang__, "!", ""),
+  --   execute.fif(self.__default__, "default", ""),
+  --   self.name,
+  --   self.fg:to_vim(),
+  --   self.bg:to_vim(),
+  --   self.style:to_vim(),
+  --   self.guisp:to_vim()
+  -- )
+  --
+  -- if self.blend then
+  --   command = command .. string.format(" blend=%s", self.blend)
+  -- end
 
-  if self.blend then
-    command = command .. string.format(" blend=%s", self.blend)
-  end
+  -- vim.api.nvim_command(command)
 
-  vim.api.nvim_command(command)
+  local hl = vim.tbl_extend("error", {
+    fg = self.fg:to_vim(),
+    bg = self.bg:to_vim(),
+  }, self.style:keys())
+
+  vim.api.nvim_set_hl(0, self.name, hl)
 end
 
 Group.update = function(self, updated)
@@ -382,11 +381,8 @@ Group.update = function(self, updated)
   end
 
   for child, _ in pairs(children_to_update) do
-    if child.update ~= nil then
-      child:update(updated)
-    else
-      log.warn("No update method found for:", child)
-    end
+    assert(child.update, "Must have an update method: " .. tostring(child))
+    child:update(updated)
   end
 end
 
@@ -394,9 +390,21 @@ local _clear_groups = function()
   _group_hash = {}
 end
 
-return {
-  groups = groups,
-  Group = Group,
-  is_group_object = is_group_object,
-  _clear_groups = _clear_groups,
-}
+M.is_group_object = function(g)
+  if g == nil or type(g) ~= "table" then
+    return false
+  end
+
+  -- TODO(__type__): Clean this up as well
+  if getmetatable(g) == Group then
+    return true
+  end
+
+  return g.__type__ == "group"
+end
+
+M.groups = groups
+M.Group = Group
+M._clear_groups = _clear_groups
+
+return M

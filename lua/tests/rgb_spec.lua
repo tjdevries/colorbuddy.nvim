@@ -1,0 +1,25 @@
+local RGB = require("colorbuddy.data.rgb")
+local eq = assert.are.same
+
+describe("RGB", function()
+  it("should return 0s", function()
+    local rgb = RGB:from_string("#000000")
+    eq(rgb.r, 0)
+    eq(rgb.g, 0)
+    eq(rgb.b, 0)
+  end)
+
+  it("should return 1s", function()
+    local rgb = RGB:from_string("#ffffff")
+    eq(rgb.r, 1)
+    eq(rgb.g, 1)
+    eq(rgb.b, 1)
+  end)
+
+  it("should return some 1s", function()
+    local rgb = RGB:from_string("#00ff09")
+    eq(rgb.r, 0)
+    eq(rgb.g, 1)
+    eq(rgb.b, 9 / 255)
+  end)
+end)

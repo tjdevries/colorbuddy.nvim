@@ -1,9 +1,4 @@
-local _ = require("colorbuddy.util")
--- util gives us some new globals:
--- luacheck: globals table.extend
--- luacheck: globals table.slice
-
-local key_concat = _.key_concat
+local key_concat = require("colorbuddy.util").key_concat
 
 local __local_mt
 
@@ -97,8 +92,16 @@ Style.new = function(name)
   return obj
 end
 
-Style.to_nvim = function(self)
+Style.to_vim = function(self)
   return key_concat(self.values, ",")
+end
+
+Style.keys = function(self)
+  if self.values.none then
+    return {}
+  end
+
+  return vim.deepcopy(self.values)
 end
 
 local is_style_object = function(s)
@@ -121,17 +124,13 @@ Style.new("standout")
 Style.new("nocombine")
 Style.new("NONE")
 
--- Make styles (mostly) readonly
-local read_only_styles = {}
-setmetatable(read_only_styles, {
-  __index = find_style,
-  __newindex = function(_, k, _)
-    error('Attempt to modify "styles", a read-only table, with: ' .. k)
-  end,
-  __metatable = false,
-})
-
 return {
-  styles = read_only_styles,
+  styles = setmetatable({}, {
+    __index = find_style,
+    __newindex = function(_, k, _)
+      error('Attempt to modify "styles", a read-only table, with: ' .. k)
+    end,
+  }),
+
   is_style_object = is_style_object,
 }

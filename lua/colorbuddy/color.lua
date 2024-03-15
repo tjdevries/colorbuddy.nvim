@@ -9,114 +9,134 @@ local log = require("colorbuddy.log")
 local modifiers = require("colorbuddy.modifiers").modifiers
 local util = require("colorbuddy.util")
 
-local Color
+local HSL = require("colorbuddy.data.hsl")
+local RGB = require("colorbuddy.data.rgb")
 
-local color_hash = {}
-local function add_color(c)
-  log.debug("Adding color: ", c.name)
-  color_hash[string.lower(c.name)] = c
-end
+local create_new_color
+local M = {}
 
-local function is_existing_color(raw_key)
-  return color_hash[string.lower(raw_key)] ~= nil
-end
+---@class ColorbuddyMod
+local _mod = {}
 
-local find_color = function(_, raw_key)
-  local key = string.lower(raw_key)
-
-  if is_existing_color(key) then
-    return color_hash[key]
-  else
-    if vim then
-      local nvim_color = vim.api.nvim_get_color_by_name(key)
-      if nvim_color > 0 then
-        return Color.new(key, "#" .. bit.tohex(nvim_color, 6))
-      end
-    end
-
-    return {}
-  end
-end
-
-local colors = {}
--- colors.__index = colors
-
-local next_color = function(tbl)
-  local stateless_iterator = function(tbl, k)
-    local v
-    k, v = next(color_hash, k)
-
-    if k == "none" then
-      k, v = next(color_hash, k)
-    end
-
-    while k and string.find(k, "__") == 1 do
-      k, v = next(color_hash, k)
-    end
-
-    if v ~= nil then
-      return k, v
-    end
-  end
-
-  return stateless_iterator, tbl, nil
-end
-
-local __colors_mt = {
-  __index = find_color,
-  __pairs = next_color,
-  -- __pairs = function(tbl)
-  --     assert(false)
-  -- end,
-
-  -- __ipairs = function(tbl)
-  --     assert(false)
-  -- end
+local special_colors = {
+  none = "none",
+  bg = "bg",
+  background = "background",
+  fg = "fg",
+  foreground = "foreground",
 }
-colors = setmetatable(colors, __colors_mt)
 
-Color = {}
-local __current_index = 0
-local getIndexColorNumber = function()
-  __current_index = __current_index + 1
-  return __current_index
-end
+---@class ColorbuddyColor
+---@field name string: The name of the color (case insensitive)
+---@field base ColorbuddyHSL: The base color, will be modified by `mods`
+---@field children table<ColorbuddyColor, boolean>: The children of the color
+---@field parent ColorbuddyColor|nil: Possible color
+---@field mods ColorbuddyMod[]: List of modifications applied to this color
+---[[ Modifiers, wish it was auto generated ]]
+---@field light function: Ligthen the current color and children
+---@field dark function: Ligthen the current color and children
+local Color = {}
 
-local IndexColor = function(_, key)
-  if Color[key] ~= nil then
-    return Color[key]
-  end
+--[[
+Some Notes:
+- ColorbuddyColor.base will not change regarldess of what modifiers
+  are sent to the color. This value is immutable throughout the execution
+  UNLESS a new color value is passed to represent this value.
 
-  -- Return what the modifiers would be if we ran it based on the table's values
-  if modifiers[key] then
-    return function(s_table, ...)
-      if s_table == nil then
-        print(debug.traceback())
-        return nil
+  >>> x = Color.new('example', '#112233')
+  >>> x:light()
+
+  >>> -- x.base is unchanged.
+  >>> x.base
+
+  >>> Color.new('example', '#ffffff')
+  >>> -- now the new base would be changed.
+
+- ColorbuddyColor.mods will only be added / removed from when new
+  modifiers are applied. This should make it very simple to calculate
+  the "effective" color that a color is, and also simple to chain them
+  together
+
+--]]
+
+local mt_colorstore = {
+  __index = function(self, k)
+    local original_k = k
+
+    k = string.lower(k)
+
+    local existing = rawget(self, k)
+    if existing then
+      return existing
+    else
+      local nvim_color = vim.api.nvim_get_color_by_name(k)
+      if nvim_color >= 0 then
+        -- return Color.new(original_k, "#" .. bit.tohex(nvim_color, 6))
+        local new_color = create_new_color(original_k, HSL:from_vim("#" .. bit.tohex(nvim_color, 6)))
+        rawset(self, k, new_color)
+        return new_color
       end
-
-      local kiddo =
-        s_table:new_child(s_table.name .. "-" .. tostring(getIndexColorNumber()), { key, unpack({ ... }) })
-
-      return kiddo
     end
-  end
 
-  return nil
+    return nil
+  end,
+
+  __newindex = function(self, k, v)
+    rawset(self, string.lower(k), v)
+  end,
+}
+local colors = setmetatable({}, mt_colorstore)
+
+local current_color_idx = 0
+local get_next_color_number = function()
+  current_color_idx = current_color_idx + 1
+  return current_color_idx
 end
 
 local color_arithmetic = function(operation)
   return function(left, right)
-    return Color.__private_create(nil, unpack(modifiers[operation](left.H, left.S, left.L, right, 1)))
+    return create_new_color(
+      left.name .. "-" .. tostring(get_next_color_number()),
+      modifiers[operation](left:to_hsl(), right, 1)
+    )
   end
 end
 
-local __ColorMt = {
+local banned_access = { H = true, S = true, L = true }
+
+local mt_color = {
   __type__ = "color",
-  __metatable = {},
-  __index = IndexColor,
+  __index = function(self, key)
+    if banned_access[key] then
+      error("BANNED ACCESS. BREAKING CHANGES:" .. key)
+    end
+
+    if Color[key] ~= nil then
+      return Color[key]
+    end
+
+    -- Return what the modifiers would be if we ran it based on the table's values
+    -- TODO(base)
+    if modifiers[key] then
+      return function(s_table, ...)
+        if s_table == nil then
+          return nil
+        end
+
+        local kiddo = s_table:new_child(s_table.name .. "-" .. tostring(get_next_color_number()), { key, ... })
+
+        return kiddo
+      end
+    end
+
+    return nil
+  end,
+
+  --- tostring for ColorbuddyColor
+  ---@param self ColorbuddyColor:
+  ---@return string
   __tostring = function(self)
-    return string.format("[%s: (%s, %s, %s)]", self.name, self.H, self.S, self.L)
+    return string.format("[%s: %s]", self.name, tostring(self.base))
   end,
 
   -- FIXME: Determine what the basic arithmetic operators should do for colors...
@@ -124,17 +144,26 @@ local __ColorMt = {
   __sub = color_arithmetic("subtract"),
 }
 
-Color.__private_create = function(name, H, S, L, mods)
-  if type(mods) == type({}) and mods ~= {} then
-    H, S, L = unpack(Color.modifier_result({ H = H, S = S, L = L }, unpack(mods)))
-  end
+--- Create a new Color instance
+---@param name string: Name of the new child
+---@param base ColorbuddyHSL:
+---@param mods any
+---@return ColorbuddyColor
+create_new_color = function(name, base, mods)
+  -- if type(mods) == type({}) and mods ~= {} then
+  --   base = M.Color.modifier_result(base, unpack(mods))
+  -- end
+
+  mods = mods or {}
+
+  assert(type(name) == "string", "name must be a string")
+  assert(type(mods) == "table", "mods must be a table or nil")
+  assert(HSL.is_hsl(base), "base must be an HSL value" .. vim.inspect(base))
 
   return setmetatable({
     __type__ = "color",
     name = name,
-    H = H,
-    S = S,
-    L = L,
+    base = base,
     mods = mods,
 
     -- Objects that depend on what this color is
@@ -145,191 +174,170 @@ Color.__private_create = function(name, H, S, L, mods)
     -- TODO: Maybe make more than one of these?
     -- The parent of this object
     --  When "self" is changed, we wait until these have been updated
-    parent = {},
-  }, __ColorMt)
+    parent = nil,
+  }, mt_color)
 end
 
-Color.new = function(name, H, S, L, mods)
+--- Create a new color
+---@param name string: Name of the new child
+---@param base string|ColorbuddyHSL|ColorbuddyColor: The base color information
+---@param mods? ColorbuddyMod[]: List of modifications
+---@return ColorbuddyColor
+function Color.new(name, base, mods)
   -- Color:
   --  name
   --  H, S, L
   --  children: A table of all the colors that depend on this color
-  assert(__ColorMt)
 
-  if H == nil then
-    local obj = {
+  if base == nil then
+    assert(special_colors[name], "Only allowed to pass `nil` color when special")
+
+    -- TODO: Change this to add_special_color
+    local obj = setmetatable({
       __type__ = "color",
       name = name,
-      _add_child = function(...)
-        return { ... }
-      end,
-      to_rgb = Color.to_rgb,
-    }
+      children = {},
+      mods = {},
+      -- TODO: self.base?
+    }, mt_color)
 
-    add_color(obj)
+    colors[obj.name] = obj
 
     return obj
-  elseif type(H) == "string" and H:sub(1, 1) == "#" and H:len() == 7 then
-    log.debug("Generating HSL for: ", name, H)
+  end
 
-    H, S, L = util.rgb_string_to_hsl(H)
+  ---@type ColorbuddyHSL
+  local hsl
 
-    log.debug("Result: ", H, S, L)
+  if type(base) == "string" then
+    log.debug("Generating HSL from rgb string: ", name, base)
+    hsl = HSL:from_vim(base)
+  elseif HSL.is_hsl(base) then
+    hsl = base
+  else
+    error("We haven't implemented this other thing yet")
   end
 
   -- Get an existing color if possible, so that we can update any references to this color
   -- when you use something like 'Color.new('red', ...)' twice
-  local object
-  if is_existing_color(name) then
-    object = colors[name]
-    object.H = H
-    object.S = S
-    object.L = L
+  mods = mods or {}
 
+  ---@type ColorbuddyColor
+  local object
+
+  if colors[name] then
+    log.debug("Updating existing color...", name, hsl)
+    object = colors[name]
+
+    -- Update object in place
+    object.base = hsl
     object.mods = mods
 
-    -- FIXME: Alert any colors that depend on this object that we have a new definition
-    -- and then apply the modifiers correctly
-
+    -- Update any children
     for child, _ in pairs(object.children) do
       log.debug("Updating child:", child)
 
-      if child.update ~= nil then
-        child:update()
-      else
-        log.warn("No update method found for:", child)
-      end
+      assert(child.update, "All children must be ColorbuddyColor")
+      child:update()
     end
   else
-    object = Color.__private_create(name, H, S, L, mods)
-    add_color(object)
+    log.debug("Creating new color...", name, hsl)
+    object = create_new_color(name, hsl, mods)
+    log.debug("... Created")
+    colors[object.name] = object
   end
 
   return object
 end
 
-local special_colors = {
-  none = "none",
-  bg = "bg",
-  background = "background",
-  fg = "fg",
-  foreground = "foreground",
-}
-
-Color.to_rgb = function(self, H, S, L)
+--- Returns the effective color as a string #RRGGBB or special name
+---@return string
+function Color:to_vim()
   if special_colors[self.name] then
     return special_colors[self.name]
   end
 
-  if H == nil then
-    H = self.H
-  end
-  if S == nil then
-    S = self.S
-  end
-  if L == nil then
-    L = self.L
-  end
-
-  local rgb = { util.hsl_to_rgb(H, S, L) }
-  local buffer = "#"
-
-  for _, v in ipairs(rgb) do
-    buffer = buffer .. string.format(
-      "%02x",
-      util.clamp(
-        -- Don't let the number be greater than 255 or less than 0
-        -- 0-255 is the valid range
-        math.floor(v * 256 + 0.001),
-        0,
-        255
-      )
-    )
-  end
-
-  return buffer
+  local hsl = self:to_hsl()
+  local rgb = RGB:from_hsl(hsl)
+  return rgb:to_vim()
 end
 
-Color.modifier_result = function(self, ...)
-  -- Accepts arguments of:
-  --  string: The name of a modifier for a color
-  --  table: the {name, [arguments]} of a modifier
-  local hsl_table = { self.H, self.S, self.L }
-
-  for i, current_modifier in ipairs({ ... }) do
-    if type(current_modifier) == "string" then
-      if modifiers[current_modifier] ~= nil then
-        log.debug("Applying string: ", i, current_modifier)
-        hsl_table = modifiers[current_modifier](unpack(hsl_table))
+--- Apply modifiers to an hsl
+---@param hsl ColorbuddyHSL
+---@param mods ColorbuddyMod[]
+---@return ColorbuddyHSL
+local function apply_modifiers(hsl, mods)
+  local result = hsl
+  for _, mod in ipairs(mods) do
+    if type(mod) == "string" then
+      if modifiers[mod] then
+        result = modifiers[mod](result)
       else
-        error(string.format('Invalid key: "%s". Please use a valid key', current_modifier))
+        error(string.format('Invalid modifier: "%s". Please use a valid modifier', mod))
       end
-    elseif type(current_modifier) == "table" then
-      local modifier_key = current_modifier[1]
-      local modifier_arguments = table.slice(current_modifier, 2)
+    elseif type(mod) == "table" then
+      local modifier_key = mod[1]
+      local modifier_arguments = util.tbl_slice(mod, 2)
 
       if modifiers[modifier_key] ~= nil then
-        local new_arg_table = table.extend(hsl_table, modifier_arguments)
-        hsl_table = modifiers[modifier_key](unpack(new_arg_table))
+        result = modifiers[modifier_key](result, unpack(modifier_arguments))
       else
-        error(string.format('Invalid key: "%s". Please use a valid key', modifier_key))
+        error(string.format('Invalid modifier: "%s". Please use a valid modifier', modifier_key))
       end
+    else
+      -- print("Unsupported modifier type" .. vim.inspect(mod))
     end
   end
 
-  return hsl_table
+  return result
 end
 
-Color.modifier_apply = function(self, ...)
-  log.debug("Applying Modifier for:", self.name, " / ", ...)
+--- Returns the effective HSL value
+---@return ColorbuddyHSL
+function Color:to_hsl()
+  if not self.mods then
+    error("Must have mods:" .. vim.inspect(self))
+  end
 
-  local new_hsl = self:modifier_result(...)
-  self.H, self.S, self.L = unpack(new_hsl)
+  -- Collect all the parent mods, then ours and then apply
+  local mods = {}
+  local parent = self.parent
+  while parent do
+    vim.list_extend(mods, parent.mods)
+    parent = parent.parent
+  end
 
-  -- Update all of the children.
-  local updated = {}
+  vim.list_extend(mods, self.mods)
+
+  return apply_modifiers(self.base, mods)
+end
+
+--- Apply modifiers to the current color and its children
+---@param mods ColorbuddyMod[]: List of modifications
+---@return table: List of colors updated (to prevent modifying multiple times)
+function Color:modifier_apply(mods, updated)
+  updated = updated or {}
+  if updated[self] then
+    return updated
+  end
+
+  log.debug("Applying Modifier for:", self.name, " / ", mods)
+  updated[self] = true
+  for _, mod in ipairs(mods) do
+    table.insert(self.mods, mod)
+  end
 
   for child, _ in pairs(self.children) do
-    if child.update ~= nil then
-      child:update(updated)
-    else
-      log.warn("No update method found for:", child)
-      log.warn("TYPE WAS: ", child.__type__)
-    end
+    child:modifier_apply({}, updated)
   end
-  -- FIXME: Check for loops within the children.
-  -- FIXME: Call an event to update any color groups
 
   return updated
 end
 
-Color._add_child = function(self, child)
-  self.children[child] = true
-  child.parent = self
-end
-
-Color.new_child = function(self, name, ...)
-  if self.children[string.lower(name)] ~= nil then
-    print("ERROR: must not use same name")
-    return nil
-  end
-
-  log.debug("New Child: ", self, name, ...)
-  local kid_args = { self.H, self.S, self.L }
-  kid_args[4] = {}
-  for index, passed_arg in ipairs({ ... }) do
-    kid_args[4][index] = passed_arg
-  end
-
-  local kid = Color.new(name, unpack(kid_args))
-
-  self:_add_child(kid)
-
-  return kid
-end
-
-Color.update = function(self, updated)
-  -- TODO: We don't full handle loops right now, since we  don't pass updated to anywhere
+--- Update a color and all of its dependencies
+---@param updated table|nil: A map of colors that have been updated.
+---@return table: A map of colors that have been updated (can be `updated` if passed)
+function Color:update(updated)
   if updated == nil then
     updated = {}
   end
@@ -340,31 +348,73 @@ Color.update = function(self, updated)
 
   updated[self] = true
 
-  self.H = self.parent.H
-  self.S = self.parent.S
-  self.L = self.parent.L
+  if self.parent then
+    self.base = self.parent.base
+  end
 
-  if type(self.mods) == type({}) then
-    self:modifier_apply(unpack(self.mods))
+  for child, _ in pairs(self.children) do
+    child:update(updated)
   end
 
   return updated
 end
 
-local is_color_object = function(c)
-  if c == nil then
+Color._add_child = function(self, child)
+  self.children[child] = true
+  child.parent = self
+end
+
+--- Create a new child of the current color
+---@param name string: Name of the new child
+---@param mods ColorbuddyMod[]: List of modifications
+---@return ColorbuddyColor
+function Color:new_child(name, mods)
+  if self.children[string.lower(name)] ~= nil then
+    error("new_child must not re-use an existing name?")
+    return nil
+  end
+
+  log.debug("New Child: ", name, "with", mods)
+
+  -- TODO: This might not be right, because it won't apply original modifiers to base
+  -- local resulting_mods = {}
+  -- vim.list_extend(resulting_mods, self.mods)
+  -- vim.list_extend(resulting_mods, mods)
+
+  local kid = Color.new(name, self.base, mods)
+  self:_add_child(kid)
+
+  return kid
+end
+
+M.is_color_object = function(c)
+  if c == nil or type(c) ~= "table" then
     return false
   end
 
-  return c.__type__ == "color"
+  if getmetatable(c) == mt_color then
+    return true
+  end
+
+  if c.__type__ == "color" then
+    log.info("COLOR CHECK")
+    return true
+  end
+
+  return false
 end
 
-local _clear_colors = function()
-  color_hash = {}
+M._clear_colors = function()
+  for k, _ in pairs(colors) do
+    rawset(colors, k, nil)
+  end
 end
+
+M.Color = Color
+M.colors = colors
 
 Color.new("none")
-Color.new("gray0", "#282c34")
+Color.new("gray0", "#111111")
 Color.new("gray1", "#282a2e")
 Color.new("gray2", "#373b41")
 Color.new("gray3", "#969896")
@@ -373,9 +423,26 @@ Color.new("gray5", "#c5c8c6")
 Color.new("gray6", "#e0e0e0")
 Color.new("gray7", "#ffffff")
 
-return {
-  colors = colors,
-  Color = Color,
-  is_color_object = is_color_object,
-  _clear_colors = _clear_colors,
-}
+-- TODO: Could use this for the modifiers
+-- local next_color = function(tbl)
+--   local stateless_iterator = function(tbl, k)
+--     local v
+--     k, v = next(color_hash, k)
+--
+--     if k == "none" then
+--       k, v = next(color_hash, k)
+--     end
+--
+--     while k and string.find(k, "__") == 1 do
+--       k, v = next(color_hash, k)
+--     end
+--
+--     if v ~= nil then
+--       return k, v
+--     end
+--   end
+--
+--   return stateless_iterator, tbl, nil
+-- end
+
+return M
