@@ -2,6 +2,8 @@
 
 NOTE: now requires neovim 0.9 or nightly
 
+(If you were using old version, you can use the tag 1.0.0)
+
 A colorscheme helper for Neovim.
 
 Written in Lua! Quick & Easy Color Schemes :smile:
