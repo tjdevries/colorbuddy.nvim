@@ -24,81 +24,45 @@ Group.new("InvNormal", c.gray0, c.gray5)
 Group.new("NormalFloat", g.normal.fg:light(), g.normal.bg:dark())
 Group.new("FloatBorder", c.gray0:light(), g.NormalFloat)
 
-Group.new("EndOfBuffer", c.gray3)
-
-Group.new("LineNr", c.gray1, c.gray0)
-Group.new("SignColumn", g.LineNr.fg:light(), g.LineNr)
-
+Group.new("CommandMode", c.gray7, c.green, s.bold)
 Group.new("Cursor", g.normal.bg, g.normal.fg)
 Group.new("CursorLine", nil, g.normal.bg:light(0.05))
+Group.new("EndOfBuffer", c.gray3)
+Group.new("HelpDoc", c.gray7, c.turquoise, s.bold + s.italic)
+Group.new("HelpIgnore", c.green, nil, s.bold + s.italic)
+Group.new("InsertMode", c.gray7, c.yellow, s.bold)
+Group.new("LineNr", c.gray1, c.gray0)
+Group.new("NormalMode", c.gray7, c.red, s.bold)
 Group.new("PMenu", c.gray4, c.gray2)
-Group.new("PMenuSel", c.gray0, c.yellow:light())
 Group.new("PMenuSbar", nil, c.gray0)
+Group.new("PMenuSel", c.gray0, c.yellow:light())
 Group.new("PMenuThumb", nil, c.gray4)
-Group.new("qfFileName", c.yellow, nil, s.bold)
+Group.new("ReplaceMode", c.gray7, c.yellow, s.bold + s.underline)
+Group.new("SignColumn", g.LineNr.fg:light(), g.LineNr)
 Group.new("StatusLine", c.gray2, c.blue, nil)
 Group.new("StatusLineNC", c.gray3, c.gray1:light())
+Group.new("TerminalMode", c.gray7, c.turquoise, s.bold)
 Group.new("User1", c.gray7, c.yellow, s.bold)
 Group.new("User2", c.gray7, c.red, s.bold)
 Group.new("User3", c.gray7, c.green, s.bold)
-Group.new("CommandMode", c.gray7, c.green, s.bold)
-Group.new("NormalMode", c.gray7, c.red, s.bold)
-Group.new("InsertMode", c.gray7, c.yellow, s.bold)
-Group.new("ReplaceMode", c.gray7, c.yellow, s.bold + s.underline)
-Group.new("TerminalMode", c.gray7, c.turquoise, s.bold)
-Group.new("HelpDoc", c.gray7, c.turquoise, s.bold + s.italic)
-Group.new("HelpIgnore", c.green, nil, s.bold + s.italic)
-
 Group.new("Visual", nil, c.blue:dark(0.3))
-Group.new("VisualMode", g.Visual, g.Visual)
 Group.new("VisualLineMode", g.Visual, g.Visual)
+Group.new("VisualMode", g.Visual, g.Visual)
+Group.new("qfFileName", c.yellow, nil, s.bold)
 
+Group.new("Conceal", g.Normal.bg, c.gray2:light(), s.italic)
+Group.new("Define", c.cyan)
+Group.new("Error", c.red:light(), nil, s.bold)
+Group.new("Folded", c.gray3:dark(), c.gray2:light())
+Group.new("MatchParen", c.cyan)
+Group.new("NonText", c.gray2:light(), nil, s.italic)
+Group.new("Search", c.gray1, c.yellow)
 Group.new("Special", c.purple:light(), nil, s.bold)
 Group.new("SpecialChar", c.brown)
-Group.new("NonText", c.gray2:light(), nil, s.italic)
-Group.new("WhiteSpace", c.purple)
-Group.new("Conceal", g.Normal.bg, c.gray2:light(), s.italic)
-Group.new("Search", c.gray1, c.yellow)
 Group.new("TabLine", c.blue:dark(), c.gray1, s.none)
 Group.new("TabLineFill", c.softwhite, c.gray3, s.none)
 Group.new("TabLineSel", c.gray7:light(), c.gray1, s.bold)
-
-Group.new("Boolean", c.orange)
-Group.new("Comment", c.gray3:light(), nil, s.italic)
-Group.new("Character", c.red)
-Group.new("Conditional", c.red)
-Group.new("Define", c.cyan)
-Group.new("Error", c.red:light(), nil, s.bold)
-
-Group.new("Number", c.red)
-Group.new("Float", g.Number, g.Number, g.Number)
-Group.new("Constant", c.orange, nil, s.bold)
-
-Group.new("Identifier", c.red, nil, s.bold)
-Group.new("Include", c.cyan)
-Group.new("Label", c.yellow)
-Group.new("Operator", c.red:light():light())
-Group.new("PreProc", c.yellow)
-Group.new("Repeat", c.red)
-Group.new("Repeat", c.red)
-Group.new("Statement", c.red:dark(0.1))
-Group.new("StorageClass", c.yellow)
-Group.new("Structure", c.violet)
-Group.new("Tag", c.yellow)
-Group.new("Todo", c.yellow)
-Group.new("Typedef", c.yellow)
-
-Group.new("Type", c.violet, nil, s.italic)
-Group.new("Folded", c.gray3:dark(), c.gray2:light())
-Group.new("Function", c.yellow, nil, s.bold)
-
-Group.new("MatchParen", c.cyan)
-
-Group.new("@field", c.red)
-Group.new("@include", g.include)
-Group.new("@constant", c.blue)
-Group.new("@function", g.Function)
-Group.new("@namespace", c.blue:light())
+Group.new("WhiteSpace", c.purple)
 
 do -- # Identifiers {{{
   -- @variable ; various variable names
@@ -112,12 +76,20 @@ do -- # Identifiers {{{
   -- @variable.member     ; object and struct fields
 
   -- @constant          ; constant identifiers
+  Group.new("Constant", c.orange, nil, s.bold)
+  Group.link("@constant", g.constant)
+
   -- @constant.builtin  ; built-in constant values
   -- @constant.macro    ; constants defined by the preprocessor
 
   -- @module            ; modules or namespaces
+  Group.new("Structure", c.violet)
+  Group.link("@module", g.structure)
+
   -- @module.builtin    ; built-in modules or namespaces
   -- @label             ; GOTO and other labels (e.g. `label:` in C), including heredoc labels
+  Group.new("Label", c.yellow)
+  Group.link("@label", g.label)
 end -- }}}
 
 do -- # Literals {{{
@@ -133,44 +105,55 @@ do -- # Literals {{{
   -- @string.special.path    ; filenames
 
   -- @character              ; character literals
+  Group.new("Character", c.red)
+
   -- @character.special      ; special characters (e.g. wildcards)
+  Group.new("@character.special", g.character.fg, nil, s.bold)
 
   -- @boolean                ; boolean literals
+  Group.new("Boolean", c.orange)
+  Group.link("@boolean", g.boolean)
+
   -- @number                 ; numeric literals
+  Group.new("Number", c.red)
+  Group.link("@number", g.number)
+
   -- @number.float           ; floating-point number literals
+  Group.link("Float", g.Number)
 end -- }}}
 
---[[
-#### Types
+do -- #### Types {{{
+  -- @type             ; type or class definitions and annotations
+  Group.new("Type", c.violet, nil, s.italic)
+  Group.link("@type", g.type)
 
-```query
-@type             ; type or class definitions and annotations
-@type.builtin     ; built-in types
-@type.definition  ; identifiers in type definitions (e.g. `typedef <type> <identifier>` in C)
-@type.qualifier   ; type qualifiers (e.g. `const`)
+  -- @type.builtin     ; built-in types
+  Group.new("@type.builtin", g.type, nil, s.bold)
 
-@attribute        ; attribute annotations (e.g. Python decorators)
-@property         ; the key in key/value pairs
-```
+  -- @type.definition  ; identifiers in type definitions (e.g. `typedef <type> <identifier>` in C)
+  -- @type.qualifier   ; type qualifiers (e.g. `const`)
+  --
+  -- @attribute        ; attribute annotations (e.g. Python decorators)
+  -- @property         ; the key in key/value pairs
+end -- }}}
+do -- ### Functions {{{
+  -- @function             ; function definitions
+  Group.new("@function", g.Function)
 
-#### Functions
-
-```query
-@function             ; function definitions
-@function.builtin     ; built-in functions
-@function.call        ; function calls
-@function.macro       ; preprocessor macros
-
-@function.method      ; method definitions
-@function.method.call ; method calls
-
-@constructor          ; constructor calls and definitions
-@operator             ; symbolic operators (e.g. `+` / `*`)
-```
--- ]]
+  -- @function.builtin     ; built-in functions
+  -- @function.call        ; function calls
+  -- @function.macro       ; preprocessor macros
+  --
+  -- @function.method      ; method definitions
+  -- @function.method.call ; method calls
+  --
+  -- @constructor          ; constructor calls and definitions
+  -- @operator             ; symbolic operators (e.g. `+` / `*`)
+end -- }}
 
 do -- #### Keywords
-  Group.new("@keyword", c.violet) -- ; keywords not fitting into specific categories
+  Group.new("keyword", c.violet)
+  Group.link("@keyword", g.keyword) -- ; keywords not fitting into specific categories
   -- @keyword.coroutine         ; keywords related to coroutines (e.g. `go` in Go, `async/await` in Python)
   -- @keyword.function          ; keywords that define a function (e.g. `func` in Go, `def` in Python)
   -- @keyword.operator          ; operators that are English words (e.g. `and` / `or`)
@@ -182,6 +165,8 @@ do -- #### Keywords
   -- @keyword.exception         ; keywords related to exceptions (e.g. `throw` / `catch`)
   --
   -- @keyword.conditional         ; keywords related to conditionals (e.g. `if` / `else`)
+  Group.link("Conditional", g.keyword)
+
   -- @keyword.conditional.ternary ; ternary operator (e.g. `?` / `:`)
   --
   -- @keyword.directive         ; various preprocessor directives & shebangs
@@ -197,17 +182,20 @@ end
 @punctuation.special   ; special symbols (e.g. `{}` in string interpolation)
 ```
 
-#### Comments
+--]]
+do -- #### Comments {{{
+  -- @comment               ; line and block comments
+  Group.new("Comment", c.gray3:light(), nil, s.italic)
 
-```query
-@comment               ; line and block comments
-@comment.documentation ; comments documenting code
+  -- @comment.documentation ; comments documenting code
+  --
+  -- @comment.error         ; error-type comments (e.g. `ERROR`, `FIXME`, `DEPRECATED:`)
+  -- @comment.warning       ; warning-type comments (e.g. `WARNING:`, `FIX:`, `HACK:`)
+  -- @comment.todo          ; todo-type comments (e.g. `TODO:`, `WIP:`, `FIXME:`)
+  -- @comment.note          ; note-type comments (e.g. `NOTE:`, `INFO:`, `XXX`)
+end -- }}}
 
-@comment.error         ; error-type comments (e.g. `ERROR`, `FIXME`, `DEPRECATED:`)
-@comment.warning       ; warning-type comments (e.g. `WARNING:`, `FIX:`, `HACK:`)
-@comment.todo          ; todo-type comments (e.g. `TODO:`, `WIP:`, `FIXME:`)
-@comment.note          ; note-type comments (e.g. `NOTE:`, `INFO:`, `XXX`)
-```
+--[[
 
 #### Markup
 
@@ -281,7 +269,6 @@ Goto above to see who this is from.
 hi String ctermbg=0 ctermfg=10 cterm=NONE guibg=#36353d guifg=#7d8a6b gui=NONE
 hi Normal ctermbg=0 ctermfg=15 cterm=NONE guibg=#36353d guifg=#a4a4a7 gui=NONE
 hi ErrorMsg ctermbg=0 ctermfg=9 cterm=NONE guibg=#36353d guifg=#8e5256 gui=NONE
-hi Identifier ctermbg=0 ctermfg=6 cterm=NONE guibg=#36353d guifg=#6c8b94 gui=NONE
 
 hi DiffAdd ctermbg=2 guibg=#414839
 hi DiffChange ctermbg=2 guibg=#414839
@@ -292,7 +279,6 @@ hi! link diffSubname Normal
 hi! link DiffDelete ErrorMsg
 
 hi! link DiffText Normal
-hi! link diffLine Identifier
 --]]
 end -- }}}
 do -- Files {{{
@@ -316,9 +302,25 @@ do -- Markdown {{{
   Group.new("markdownH3", g.markdownH2.fg:light(), nil, s.italic)
 end -- }}}
 
+Group.link("@normal", g.Normal)
+Group.link("@tag.attribute.html", g.type)
+Group.link("@tag.delimiter.html", c.blue:light())
+
 -- TODO:
 Group.new("TelescopeMatching", c.orange:saturate(0.20), c.None, s.bold)
 
-Group.link("@normal", g.Normal)
-Group.link("@tag.attribute.html", g.type)
-Group.link("@tag.delimiter.html", g["@namespace"])
+-- Old Vim Highlights (good to keep for existing colors)
+
+Group.link("Identifier", g.variable)
+
+Group.new("Function", c.yellow, nil, s.bold)
+Group.new("Include", c.cyan)
+Group.new("Operator", c.red:light():light())
+Group.new("PreProc", c.yellow)
+Group.new("Repeat", c.red)
+Group.new("Repeat", c.red)
+Group.new("Statement", c.red:dark(0.1))
+Group.new("StorageClass", c.yellow)
+Group.new("Tag", c.yellow)
+Group.new("Todo", c.yellow)
+Group.new("Typedef", c.yellow)
