@@ -138,6 +138,7 @@ do -- #### Types {{{
 end -- }}}
 do -- ### Functions {{{
   -- @function             ; function definitions
+  Group.new("Function", c.yellow, nil, s.bold)
   Group.new("@function", g.Function)
 
   -- @function.builtin     ; built-in functions
@@ -303,8 +304,8 @@ do -- Markdown {{{
 end -- }}}
 
 Group.link("@normal", g.Normal)
-Group.link("@tag.attribute.html", g.type)
-Group.link("@tag.delimiter.html", c.blue:light())
+Group.new("@tag.attribute.html", g.type)
+Group.new("@tag.delimiter.html", c.blue:light())
 
 -- TODO:
 Group.new("TelescopeMatching", c.orange:saturate(0.20), c.None, s.bold)
@@ -313,7 +314,6 @@ Group.new("TelescopeMatching", c.orange:saturate(0.20), c.None, s.bold)
 
 Group.link("Identifier", g.variable)
 
-Group.new("Function", c.yellow, nil, s.bold)
 Group.new("Include", c.cyan)
 Group.new("Operator", c.red:light():light())
 Group.new("PreProc", c.yellow)
