@@ -191,4 +191,32 @@ util.round = function(val)
   return math.floor(val + 0.5)
 end
 
+util.toHex = (function()
+  local ok, bit = pcall(require, "bit")
+  if ok then
+    return bit.tohex
+  else
+    return function(num, width)
+      if num == 0 then
+        return string.rep("0", width)
+      end
+
+      local hexChars = "0123456789abcdef"
+      local hex = ""
+      local remainder
+      while num > 0 do
+        remainder = num % 16
+        hex = string.sub(hexChars, remainder + 1, remainder + 1) .. hex
+        num = math.floor(num / 16)
+      end
+
+      if #hex < width then
+        hex = string.rep("0", width - #hex) .. hex
+      end
+
+      return hex
+    end
+  end
+end)()
+
 return util

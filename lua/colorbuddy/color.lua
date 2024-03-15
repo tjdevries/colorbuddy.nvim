@@ -63,8 +63,7 @@ local mt_colorstore = {
     else
       local nvim_color = vim.api.nvim_get_color_by_name(k)
       if nvim_color >= 0 then
-        -- return Color.new(original_k, "#" .. bit.tohex(nvim_color, 6))
-        local new_color = create_new_color(original_k, HSL:from_vim("#" .. bit.tohex(nvim_color, 6)))
+        local new_color = create_new_color(original_k, HSL:from_vim("#" .. util.toHex(nvim_color, 6)))
         rawset(self, k, new_color)
         return new_color
       end
