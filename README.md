@@ -8,6 +8,15 @@ Written in Lua! Quick & Easy Color Schemes :smile:
 
 Sincerely, your color buddy.
 
+
+# Basic Usage
+
+```lua
+vim.cmd.colorscheme("colorbuddy")
+-- or
+vim.cmd.colorscheme("gruvbuddy")
+```
+
 ## Example
 
 Your color buddy for making cool neovim color schemes. Write your colorscheme in lua!
