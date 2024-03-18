@@ -15,8 +15,17 @@ Color.new("softwhite", "#ebdbb2")
 Color.new("teal", "#018080")
 Color.new("black", "#000000")
 
-Color.new("lightyellow", c.NvimLightYellow:to_hsl())
-Color.new("lightcyan", c.NvimLightCyan:to_hsl())
+if c.NvimLightYellow then
+  Color.new("lightyellow", c.NvimLightYellow:to_hsl())
+else
+  Color.new("lightyellow", "#E0FFFF")
+end
+
+if c.NvimLightCyan then
+  Color.new("lightcyan", c.NvimLightCyan:to_hsl())
+else
+  Color.new("lightcyan", "#8ec07c")
+end
 
 --1 Vim Editor
 Group.new("Normal", c.superwhite, c.gray0)
