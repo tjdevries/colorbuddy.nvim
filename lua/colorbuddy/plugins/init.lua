@@ -18,13 +18,13 @@ Color.new("black", "#000000")
 if c.NvimLightYellow then
   Color.new("lightyellow", c.NvimLightYellow:to_hsl())
 else
-  Color.new("lightyellow", "#E0FFFF")
+  Color.new("lightyellow", "#f4d88c")
 end
 
 if c.NvimLightCyan then
   Color.new("lightcyan", c.NvimLightCyan:to_hsl())
 else
-  Color.new("lightcyan", "#8ec07c")
+  Color.new("lightcyan", "#83efef")
 end
 
 --1 Vim Editor
