@@ -79,7 +79,7 @@ Group.new('Function'        , colors.yellow      , colors.background , styles.bo
 Group.new('luaFunctionCall' , groups.Function    , groups.Function   , groups.Function)
 
 -- Define highlights in relative terms of other colors
-Group.new('Error'           , colors.red:light() , nil               , s.bold)
+Group.new('Error'           , colors.red:light() , nil               , styles.bold)
 
 -- If you want multiple styles, just add them!
 Group.new('italicBoldFunction', colors.green, groups.Function, styles.bold + styles.italic)
